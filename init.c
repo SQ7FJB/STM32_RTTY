@@ -16,7 +16,7 @@ ADC_InitTypeDef ADC_InitStructure;
 DMA_InitTypeDef DMA_InitStructure;
 #define ADC1_DR_Address    ((uint32_t)0x4001244C)
 
-void NVIC_Conf(void)
+void NVIC_Conf()
 {
 #ifdef  VECT_TAB_RAM
   NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);
@@ -25,7 +25,7 @@ void NVIC_Conf(void)
 #endif
 }
 
-void RCC_Conf(void)
+void RCC_Conf()
 {
 	 ErrorStatus HSEStartUpStatus;
 	  RCC_DeInit();
@@ -43,7 +43,7 @@ void RCC_Conf(void)
   }
 }
 
-void init_port(void)
+void init_port()
 {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 	GPIO_Conf.GPIO_Pin = GPIO_Pin_12;

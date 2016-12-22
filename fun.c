@@ -103,9 +103,9 @@ uint16_t gps_CRC16_checksum(char *string) {
 }
 
 int srednia(int dana) {
-  volatile char nr_pom = 0;
-  volatile char first = 1;
-  char i;
+  static uint8_t nr_pom = 0;
+  static uint8_t first = 1;
+  uint8_t i;
   int sr = 0;
   if (first) {
     for (i = 0; i < 5; i++) {

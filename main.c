@@ -12,14 +12,15 @@
 #include "stdlib.h"
 #include "misc.h"
 #include <stdio.h>
+#include <string.h>
 #include "f_rtty.h"
-#include "init.h"
 #include "fun.h"
+#include "init.h"
 
 //**************config**************
 char callsign[15] = {"NO1LIC-1"}; // put your callsign here
 
-//************band select******************
+//************band select****************** si4032
 #define fb    1
 #define fbsel  1
 //fb		fbsel 0			1
@@ -98,7 +99,7 @@ float deg = 0;
 float fbuf = 0;
 char use_sat[3] = {'0'};
 char flaga = ((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
-int32_t CRC_rtty = 0x12ab;  //checksum
+uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf[512];
 char buf_rtty[200];
 char menu[] = "$$$$$$STM32 RTTY tracker by Blasiu, enjoy and see you on the HUB... \n\r";
@@ -137,6 +138,8 @@ unsigned char cun_off = 0;
 unsigned char bOFF = 0;
 unsigned char bCheckKay = 0;
 unsigned char GPSConf = 0;
+
+void radio_set_tx_frequency();
 
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16) RESET) {
@@ -227,6 +230,8 @@ void TIM2_IRQHandler(void) {
   bCheckKay = 1;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(void) {
 #ifdef DEBUG
   debug();
@@ -249,10 +254,7 @@ int main(void) {
   temp = spi_sendrecv(0x0780 | WR);
   print(init_trx);
   // programowanie czestotliwosci nadawania
-  napiecie = fc;
-  temp = spi_sendrecv(0x7561 | WR);
-  temp = spi_sendrecv(0x7600 | (((uint16_t)fc >> 8) & 0x00ff) | WR);
-  temp = spi_sendrecv(0x7700 | ((uint16_t)fc & 0x00ff) | WR);
+  radio_set_tx_frequency();
 
   // Programowanie mocy nadajnika
   temp = spi_sendrecv(0x6D00 | (Smoc & 0x0007) | WR);
@@ -387,6 +389,14 @@ int main(void) {
 
   }
 }
+
+void radio_set_tx_frequency() {
+  temp = spi_sendrecv(0x7561 | WR); // FIXME: tutaj powinno zdaje się być ustawiane fbsel?!
+  temp = spi_sendrecv(0x7600 | (((uint16_t)fc >> 8) & 0x00ff) | WR);
+  temp = spi_sendrecv(0x7700 | ((uint16_t)fc & 0x00ff) | WR);
+}
+
+#pragma clang diagnostic pop
 
 #ifdef  DEBUG
 void assert_failed(uint8_t* file, uint32_t line)
