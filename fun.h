@@ -1,6 +1,6 @@
 int HexCharToInt(char ch);
 void print( char* s);
-void sendtogps(char* s, unsigned char cun);
+void sendtogps(uint8_t* s, unsigned char cun);
 void send_hex(unsigned char data);
 
 unsigned char czytaj_GPS(unsigned char pos,unsigned char len,  char *source, char * destination);

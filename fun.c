@@ -18,7 +18,7 @@ void print(char *s) {
   }
 }
 
-void sendtogps(char *s, unsigned char cun) {
+void sendtogps(uint8_t *s, unsigned char cun) {
   unsigned char CK_A = 0;
   unsigned char CK_B = 0;
   while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
