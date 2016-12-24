@@ -25,3 +25,15 @@ void radio_set_tx_frequency() {
   radio_rw_register(0x76, (uint8_t) (((uint16_t)fc >> 8) & 0xff), 1);
   radio_rw_register(0x77, (uint8_t) ((uint16_t)fc & 0xff), 1);
 }
+
+void radio_disable_tx() {
+  radio_rw_register(0x07, 0x40, 1);
+}
+
+void radio_soft_reset() {
+  radio_rw_register(0x07, 0x80, 1);
+}
+
+void radio_enable_tx() {
+  radio_rw_register(0x07, 0x48, 1);
+}

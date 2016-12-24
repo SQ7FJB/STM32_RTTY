@@ -22,5 +22,8 @@ static const uint8_t WR = 0x80;
 uint8_t _spi_sendrecv(const uint16_t data_word);
 uint8_t radio_rw_register(const uint8_t register_addr, uint8_t value, uint8_t write);
 void radio_set_tx_frequency();
+void radio_disable_tx();
+void radio_soft_reset();
+void radio_enable_tx();
 
 #endif //STM32_RTTY_RADIO_H

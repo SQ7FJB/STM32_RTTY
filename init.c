@@ -14,6 +14,9 @@ USART_InitTypeDef USART_InitStructure;
 GPIO_InitTypeDef GPIO_Conf;
 ADC_InitTypeDef ADC_InitStructure;
 DMA_InitTypeDef DMA_InitStructure;
+
+
+
 #define ADC1_DR_Address    ((uint32_t)0x4001244C)
 
 void NVIC_Conf()
@@ -55,25 +58,8 @@ void init_port()
   	GPIO_Conf.GPIO_Mode = GPIO_Mode_Out_PP;
   	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
   	GPIO_Init(GPIOB, &GPIO_Conf);
-  	TIM_TimeBaseInitTypeDef TIM2_TimeBaseInitStruct;
-  	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
-  	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2,DISABLE);
-  	TIM2_TimeBaseInitStruct.TIM_Prescaler = 1000;
-  	TIM2_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
-  	TIM2_TimeBaseInitStruct.TIM_Period = 6;
-  	TIM2_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
-  	TIM2_TimeBaseInitStruct.TIM_RepetitionCounter = 0;
-  	TIM_TimeBaseInit(TIM2,&TIM2_TimeBaseInitStruct);
-  	TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
-  	TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-  	NVIC_InitTypeDef NVIC_InitStructure; //create NVIC structure
-  	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
-  	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-  	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  	NVIC_Init(&NVIC_InitStructure);
- 	TIM_Cmd(TIM2,ENABLE);
- 	GPIO_Conf.GPIO_Pin = GPIO_Pin_13 |GPIO_Pin_15;
+
+  GPIO_Conf.GPIO_Pin = GPIO_Pin_13 |GPIO_Pin_15;
  	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
  	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
  	GPIO_Init(GPIOB, &GPIO_Conf);
@@ -173,4 +159,27 @@ void init_port()
 	ADC_StartCalibration(ADC1);	// Start new calibration (ADC must be off at that time)
 	while(ADC_GetCalibrationStatus(ADC1));
     ADC_SoftwareStartConvCmd(ADC1, ENABLE);	// start conversion (will be endless as we are in continuous mode)
+}
+
+void init_timer(const int rtty_speed) {
+  TIM_TimeBaseInitTypeDef TIM2_TimeBaseInitStruct;
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
+  RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2,DISABLE);
+
+  TIM2_TimeBaseInitStruct.TIM_Prescaler = 600;
+  TIM2_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM2_TimeBaseInitStruct.TIM_Period = (uint16_t) ((10000 / rtty_speed) - 1);
+  TIM2_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
+  TIM2_TimeBaseInitStruct.TIM_RepetitionCounter = 0;
+
+  TIM_TimeBaseInit(TIM2,&TIM2_TimeBaseInitStruct);
+  TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+  TIM_ITConfig(TIM2,TIM_IT_Update, ENABLE);
+  NVIC_InitTypeDef NVIC_InitStructure; //create NVIC structure
+  NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  TIM_Cmd(TIM2,ENABLE);
 }

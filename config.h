@@ -8,6 +8,8 @@
 #define CALLSIGN "NO1LIC-1" // put your callsign here
 //*************frequency********************
 #define freq  434.150f //Mhz middle frequency
+//************rtty speed****************** si4032
+#define RTTY_SPEED  300
 //************band select****************** si4032
 #define fb    1
 #define fbsel  1

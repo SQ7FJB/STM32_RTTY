@@ -116,8 +116,6 @@ unsigned char bOFF = 0;
 unsigned char bCheckKay = 0;
 unsigned char GPSConf = 0;
 
-
-
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16) RESET) {
 
@@ -166,7 +164,7 @@ void TIM2_IRQHandler(void) {
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
   }
-  if (tx_on && ++cun_rtty == 17) {
+  if (tx_on /*&& ++cun_rtty == 17*/) {
     cun_rtty = 0;
     send_rtty_status = send_rtty(rtty_buf);
     if (send_rtty_status == rttyEnd) {
@@ -175,7 +173,7 @@ void TIM2_IRQHandler(void) {
         tx_on = 0;
         tx_on_delay = tx_delay;//2500;
         tx_enable = 0;
-        temp = radio_rw_register(0x07, 0x40, 1);
+        radio_disable_tx();
       }
     } else if (send_rtty_status == rttyOne) {
       temp = radio_rw_register(0x73, 0x02, 1);
@@ -214,6 +212,7 @@ int main(void) {
   RCC_Conf();
   NVIC_Conf();
   init_port();
+  init_timer(RTTY_SPEED);
 
   wsk_GPS_buf = GPS_buf;
 
@@ -226,13 +225,14 @@ int main(void) {
 
   temp = radio_rw_register(0x03, 0xff, 0);
   temp = radio_rw_register(0x04, 0xff, 0);
-  temp = radio_rw_register(0x07, 0x80, 1);
+  radio_soft_reset();
   print(init_trx);
   // programowanie czestotliwosci nadawania
   radio_set_tx_frequency();
 
   // Programowanie mocy nadajnika
   temp = radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
+
   temp = radio_rw_register(0x71, 0x00, 1);
   temp = radio_rw_register(0x87, 0x08, 0);
   temp = radio_rw_register(0x02, 0xff, 0);
@@ -288,8 +288,9 @@ int main(void) {
       CRC_rtty = gps_CRC16_checksum(buf_rtty + 7);
       sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
       rtty_buf = buf_rtty;
+      radio_enable_tx();
       tx_on = 1;
-      temp = radio_rw_register(0x07, 0x48, 1);
+
       send_cun++;
     }
 
