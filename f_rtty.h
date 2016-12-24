@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include "config.h"
 
 typedef enum {
   rttyZero = 0,

@@ -10,6 +10,10 @@
 #define freq  434.150f //Mhz middle frequency
 //************rtty speed****************** si4032
 #define RTTY_SPEED  300
+//************rtty bits****************** si4032
+#define RTTY_7BIT   1
+//************rtty stop bits****************** si4032
+#define RTTY_USE_2_STOP_BITS   0
 //************band select****************** si4032
 #define fb    1
 #define fbsel  1
