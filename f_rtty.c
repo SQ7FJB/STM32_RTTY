@@ -1,9 +1,15 @@
+#include <stdint.h>
 #include "f_rtty.h"
 
-volatile unsigned char nr_bit = 0;
-
+uint8_t start_bits;
 rttyStates send_rtty(char *znak) {
+  static uint8_t nr_bit = 0;
   nr_bit++;
+  if (start_bits){
+    start_bits--;
+    return rttyOne;
+  }
+
   if (nr_bit == 1) {
     return rttyZero;
   }

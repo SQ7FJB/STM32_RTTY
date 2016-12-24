@@ -53,17 +53,6 @@ void send_hex(unsigned char data) {
   USART_SendData(USART3, ascii[data & 0x0f]);
 }
 
-uint8_t spi_sendrecv(uint16_t byte) {
-  GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-  // wait for tx buffer
-  while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);
-  SPI_I2S_SendData(SPI2, byte);
-
-  // wait for data in rx buffer
-  while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);
-  GPIO_SetBits(GPIOC, GPIO_Pin_13);
-  return SPI_I2S_ReceiveData(SPI2);
-}
 
 unsigned char czytaj_GPS(unsigned char pos, unsigned char len, char *source, char *destination) {
   char *wyn;

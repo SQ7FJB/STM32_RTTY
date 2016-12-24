@@ -15,6 +15,7 @@
 #include "f_rtty.h"
 #include "fun.h"
 #include "init.h"
+#include "radio.h"
 
 //**************config**************
 char callsign[15] = {"NO1LIC-1"}; // put your callsign here
@@ -48,7 +49,6 @@ char callsign[15] = {"NO1LIC-1"}; // put your callsign here
 ///////////////////////////// test mode /////////////
 unsigned char test = 0; // 0 - normal, 1 - short frame only cunter, height, flag
 
-#define WR              0x8000
 #define gps_RMC_dlugosc        5
 #define gps_RMC_dlugosc_len      10
 #define gps_RMC_dlugosc_kier    6
@@ -197,13 +197,13 @@ void TIM2_IRQHandler(void) {
         tx_on = 0;
         tx_on_delay = tx_delay;//2500;
         tx_enable = 0;
-        temp = spi_sendrecv(0x0740 | WR);
+        temp = radio_rw_register(0x07, 0x40, 1);
       }
     } else if (send_rtty_status == rttyOne) {
-      temp = spi_sendrecv(0x7302 | WR);
+      temp = radio_rw_register(0x73, 0x02, 1);
       GPIO_SetBits(GPIOB, RED);
     } else if (send_rtty_status == rttyZero) {
-      temp = spi_sendrecv(0x7300 | WR);
+      temp = radio_rw_register(0x73, 0x00, 1);
       GPIO_ResetBits(GPIOB, RED);
     }
   }
@@ -243,28 +243,28 @@ int main(void) {
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);
   print(menu);
-  temp = spi_sendrecv(0x02ff);
+  temp = radio_rw_register(0x02, 0xff, 0);
   //send_hex(temp);
 
-  temp = spi_sendrecv(0x03ff);
-  temp = spi_sendrecv(0x04ff);
-  temp = spi_sendrecv(0x0780 | WR);
+  temp = radio_rw_register(0x03, 0xff, 0);
+  temp = radio_rw_register(0x04, 0xff, 0);
+  temp = radio_rw_register(0x07, 0x80, 1);
   print(init_trx);
   // programowanie czestotliwosci nadawania
   radio_set_tx_frequency();
 
   // Programowanie mocy nadajnika
-  temp = spi_sendrecv(0x6D00 | (Smoc & 0x0007) | WR);
-  temp = spi_sendrecv(0x7100 | WR);
-  temp = spi_sendrecv(0x8708);
-  temp = spi_sendrecv(0x02ff);
-  temp = spi_sendrecv(0x75ff);
-  temp = spi_sendrecv(0x76ff);
-  temp = spi_sendrecv(0x77ff);
-  temp = spi_sendrecv(0x1220 | WR);
-  temp = spi_sendrecv(0x1300 | WR);
-  temp = spi_sendrecv(0x1200 | WR);
-  temp = spi_sendrecv(0x0f80 | WR);
+  temp = radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
+  temp = radio_rw_register(0x71, 0x00, 1);
+  temp = radio_rw_register(0x87, 0x08, 0);
+  temp = radio_rw_register(0x02, 0xff, 0);
+  temp = radio_rw_register(0x75, 0xff, 0);
+  temp = radio_rw_register(0x76, 0xff, 0);
+  temp = radio_rw_register(0x77, 0xff, 0);
+  temp = radio_rw_register(0x12, 0x20, 1);
+  temp = radio_rw_register(0x13, 0x00, 1);
+  temp = radio_rw_register(0x12, 0x00, 1);
+  temp = radio_rw_register(0x0f, 0x80, 1);
   rtty_buf = buf_rtty;
   tx_on = 0;
   tx_enable = 1;
@@ -279,8 +279,9 @@ int main(void) {
     }
 
     if (tx_on == 0 && tx_enable) {
-      temperatura = spi_sendrecv(0x11ff); //odczyt ADC
-      temp = spi_sendrecv(0x0f80 | WR);
+      start_bits = RTTY_PRE_START_BITS;
+      temperatura = radio_rw_register(0x11, 0xff, 0); //odczyt ADC
+      temp = radio_rw_register(0x0f, 0x80, 1);
       temperatura = -64 + (temperatura * 5 / 10) - 16;
       napiecie = srednia(ADCVal[0] * 600 / 4096);
 
@@ -309,7 +310,7 @@ int main(void) {
       sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
       rtty_buf = buf_rtty;
       tx_on = 1;
-      temp = spi_sendrecv(0x0748 | WR);
+      temp = radio_rw_register(0x07, 0x48, 1);
       send_cun++;
     }
 
@@ -388,9 +389,9 @@ int main(void) {
 }
 
 void radio_set_tx_frequency() {
-  temp = spi_sendrecv(0x7561 | WR); // FIXME: tutaj powinno zdaje się być ustawiane fbsel?!
-  temp = spi_sendrecv(0x7600 | (((uint16_t)fc >> 8) & 0x00ff) | WR);
-  temp = spi_sendrecv(0x7700 | ((uint16_t)fc & 0x00ff) | WR);
+  temp = radio_rw_register(0x75, 0x61, 1); // FIXME: tutaj powinno zdaje się być ustawiane fbsel?!
+  temp = radio_rw_register(0x76, (uint8_t) (((uint16_t)fc >> 8) & 0xff), 1);
+  temp = radio_rw_register(0x77, (uint8_t) ((uint16_t)fc & 0xff), 1);
 }
 
 #pragma clang diagnostic pop
