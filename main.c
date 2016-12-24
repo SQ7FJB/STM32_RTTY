@@ -10,7 +10,6 @@
 #include <stm32f10x_adc.h>
 #include <stm32f10x_rcc.h>
 #include "stdlib.h"
-#include "misc.h"
 #include <stdio.h>
 #include <string.h>
 #include "f_rtty.h"
@@ -112,7 +111,7 @@ unsigned char dev = 0;
 unsigned char tx_on = 0;
 unsigned int tx_on_delay;
 unsigned char tx_enable = 0;
-char send_rtty_status = 0;
+rttyStates send_rtty_status = rttyZero;
 unsigned char cun_rtty = 0;
 char *rtty_buf;
 unsigned char GPS_temp;
@@ -192,7 +191,7 @@ void TIM2_IRQHandler(void) {
   if (tx_on && ++cun_rtty == 17) {
     cun_rtty = 0;
     send_rtty_status = send_rtty(rtty_buf);
-    if (send_rtty_status == 2) {
+    if (send_rtty_status == rttyEnd) {
       GPIO_SetBits(GPIOB, RED);
       if (*(++rtty_buf) == 0) {
         tx_on = 0;
@@ -200,12 +199,10 @@ void TIM2_IRQHandler(void) {
         tx_enable = 0;
         temp = spi_sendrecv(0x0740 | WR);
       }
-    }
-    if (send_rtty_status == 1) {
+    } else if (send_rtty_status == rttyOne) {
       temp = spi_sendrecv(0x7302 | WR);
       GPIO_SetBits(GPIOB, RED);
-    }
-    if (send_rtty_status == 0) {
+    } else if (send_rtty_status == rttyZero) {
       temp = spi_sendrecv(0x7300 | WR);
       GPIO_ResetBits(GPIOB, RED);
     }

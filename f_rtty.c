@@ -1,25 +1,27 @@
+#include "f_rtty.h"
+
 volatile unsigned char nr_bit = 0;
 
-unsigned char send_rtty(char *znak) {
+rttyStates send_rtty(char *znak) {
   nr_bit++;
   if (nr_bit == 1) {
-    return 0;
+    return rttyZero;
   }
   if (nr_bit > 1 && nr_bit < 10) {
     if ((*(znak) >> (nr_bit - 2)) & 0x01) {
-      return 1;
+      return rttyOne;
     } else {
-      return 0;
+      return rttyZero;
     }
   }
 
   if (nr_bit == 10) {
-    return 1;
+    return rttyOne;
   }
   if (nr_bit == 11) {
-    return 1;
+    return rttyOne;
   }
 
   nr_bit = 0;
-  return 2;
+  return rttyEnd;
 }
