@@ -20,3 +20,8 @@ uint8_t radio_rw_register(const uint8_t register_addr, uint8_t value, uint8_t wr
   return _spi_sendrecv(((write ? register_addr | WR : register_addr) << 8) | value);
 }
 
+void radio_set_tx_frequency() {
+  radio_rw_register(0x75, 0x61, 1); // FIXME: tutaj powinno zdaje się być ustawiane fbsel?!
+  radio_rw_register(0x76, (uint8_t) (((uint16_t)fc >> 8) & 0xff), 1);
+  radio_rw_register(0x77, (uint8_t) ((uint16_t)fc & 0xff), 1);
+}

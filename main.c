@@ -15,39 +15,17 @@
 #include "f_rtty.h"
 #include "fun.h"
 #include "init.h"
+#include "config.h"
+
+
+
+
+
 #include "radio.h"
-
-//**************config**************
-char callsign[15] = {"NO1LIC-1"}; // put your callsign here
-
-//************band select****************** si4032
-#define fb    1
-#define fbsel  1
-//fb		fbsel 0			1
-// 0		208,0000		415,9992
-// 1		216,6675		433,3325
-// 2		225,3342		450,6658
-
-//*************frequency********************
-#define freq  434.150 //Mhz middle frequency
-//*****************************************************
-
-//********* power definition**************************
-#define Smoc  0 // PWR 0...7 0- MIN ... 7 - MAX
-//***************************************************
-
-//********** frame delay in msec**********
-#define tx_delay  100    // 2500 ~2,5  w polu flaga wpisywany jest tx_delay/1000 modulo 16 czyl;i dla 16000 bedzie 0 póki co.
-
-//**************end config**************
-
-//************ do not touch bellow this line;) *********************
-#define gen_div    3  //Stała nie zmieniac
-#define gen  ((26.0/gen_div) *(fbsel+1)) //26 ->26MHZ kwarc napedzajacy nadajnik
-#define fc    (((freq/gen) - fb - 24) * 64000)
 
 ///////////////////////////// test mode /////////////
 unsigned char test = 0; // 0 - normal, 1 - short frame only cunter, height, flag
+char callsign[15] = {CALLSIGN};
 
 #define gps_RMC_dlugosc        5
 #define gps_RMC_dlugosc_len      10
@@ -88,7 +66,7 @@ char szerokosc_kier = 0;// 'S';s
 char wysokosc[6] = {"0"};
 char predkosc[6] = {"0"};
 char kierunek[6] = {"0"};
-char temperatura;
+int8_t temperatura;
 char FixOk = 0;
 int napiecie;
 unsigned int czest;
@@ -138,7 +116,7 @@ unsigned char bOFF = 0;
 unsigned char bCheckKay = 0;
 unsigned char GPSConf = 0;
 
-void radio_set_tx_frequency();
+
 
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16) RESET) {
@@ -280,19 +258,20 @@ int main(void) {
 
     if (tx_on == 0 && tx_enable) {
       start_bits = RTTY_PRE_START_BITS;
-      temperatura = radio_rw_register(0x11, 0xff, 0); //odczyt ADC
+      temp = radio_rw_register(0x11, 0xff, 0); //odczyt ADC
+      temperatura = (int8_t) (-64 + (temp * 5 / 10) - 16);
       temp = radio_rw_register(0x0f, 0x80, 1);
-      temperatura = -64 + (temperatura * 5 / 10) - 16;
+
       napiecie = srednia(ADCVal[0] * 600 / 4096);
 
-      fdlugosc = atof(dlugosc);
+      fdlugosc = atoff(dlugosc);
       deg = (int) (fdlugosc / 100);
       fbuf = fdlugosc - (deg * 100);
       fdlugosc = deg + fbuf / 60;
       if (dlugosc_kier == 'W') {
         fdlugosc *= -1;
       }
-      fszerokosc = atof(szerokosc);
+      fszerokosc = atoff(szerokosc);
       deg = (int) (fszerokosc / 100);
       fbuf = fszerokosc - (deg * 100);
       fszerokosc = deg + fbuf / 60;
@@ -380,18 +359,13 @@ int main(void) {
           case 4:
             sendtogps(GPS_ZDA_OFF, sizeof(GPS_ZDA_OFF) / sizeof(uint8_t));
             break;
+          default:break;
         }
         GPSConf++;
       }
     }
 
   }
-}
-
-void radio_set_tx_frequency() {
-  temp = radio_rw_register(0x75, 0x61, 1); // FIXME: tutaj powinno zdaje się być ustawiane fbsel?!
-  temp = radio_rw_register(0x76, (uint8_t) (((uint16_t)fc >> 8) & 0xff), 1);
-  temp = radio_rw_register(0x77, (uint8_t) ((uint16_t)fc & 0xff), 1);
 }
 
 #pragma clang diagnostic pop
