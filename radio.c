@@ -21,6 +21,10 @@ uint8_t radio_rw_register(const uint8_t register_addr, uint8_t value, uint8_t wr
 }
 
 void radio_set_tx_frequency() {
+
+  uint8_t gen_div  =  3;  //Stała nie zmieniac
+  uint16_t fc = (uint16_t) (((freq / ((26.0 / gen_div) * (fbsel + 1))) - fb - 24) * 64000);
+
   radio_rw_register(0x75, 0x61, 1); // FIXME: tutaj powinno zdaje się być ustawiane fbsel?!
   radio_rw_register(0x76, (uint8_t) (((uint16_t)fc >> 8) & 0xff), 1);
   radio_rw_register(0x77, (uint8_t) ((uint16_t)fc & 0xff), 1);

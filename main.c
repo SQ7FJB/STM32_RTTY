@@ -16,11 +16,6 @@
 #include "fun.h"
 #include "init.h"
 #include "config.h"
-
-
-
-
-
 #include "radio.h"
 
 ///////////////////////////// test mode /////////////
