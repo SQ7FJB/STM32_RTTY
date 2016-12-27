@@ -16,8 +16,41 @@ ADC_InitTypeDef ADC_InitStructure;
 DMA_InitTypeDef DMA_InitStructure;
 
 
-
 #define ADC1_DR_Address    ((uint32_t)0x4001244C)
+
+void init_usart_gps(const uint32_t speed) {
+  NVIC_DisableIRQ(USART1_IRQn);
+  USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+  USART_Cmd(USART1, DISABLE);
+
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);// | RCC_APB2Periph_AFIO, ENABLE);
+  USART_InitStructure.USART_BaudRate = speed; //0x9c4;
+  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+  USART_InitStructure.USART_StopBits = USART_StopBits_1;
+  USART_InitStructure.USART_Parity = USART_Parity_No;
+  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+  USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+  USART_Init(USART1, &USART_InitStructure);
+
+  USART_Cmd(USART1, ENABLE);
+  USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+  NVIC_EnableIRQ(USART1_IRQn);
+}
+
+void init_usart_debug() {
+  NVIC_DisableIRQ(USART3_IRQn);
+  USART_Cmd(USART3, DISABLE);
+
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);// | RCC_APB2Periph_AFIO, ENABLE);
+  USART_InitStructure.USART_BaudRate = 19200; //0x9c4;
+  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+  USART_InitStructure.USART_StopBits = USART_StopBits_1;
+  USART_InitStructure.USART_Parity = USART_Parity_No;
+  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+  USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+  USART_Init(USART3, &USART_InitStructure);
+  USART_Cmd(USART3, ENABLE);
+}
 
 void NVIC_Conf()
 {
@@ -92,34 +125,20 @@ void init_port()
 	GPIO_Conf.GPIO_Pin = GPIO_Pin_10;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOA, &GPIO_Conf);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);// | RCC_APB2Periph_AFIO, ENABLE);
-	USART_InitStructure.USART_BaudRate = 9600; //0x9c4;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
-	USART_Init(USART1, &USART_InitStructure);
-	USART_Cmd(USART1, ENABLE);
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-	NVIC_EnableIRQ(USART1_IRQn);
-	GPIO_Conf.GPIO_Pin = GPIO_Pin_10;
+
+  init_usart_gps(9600);
+
+  GPIO_Conf.GPIO_Pin = GPIO_Pin_10;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_Init(GPIOB, &GPIO_Conf);
 	GPIO_Conf.GPIO_Pin = GPIO_Pin_11;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOB, &GPIO_Conf);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);// | RCC_APB2Periph_AFIO, ENABLE);
-	USART_InitStructure.USART_BaudRate = 19200; //0x9c4;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
-	USART_Init(USART3, &USART_InitStructure);
-	USART_Cmd(USART3, ENABLE);
-	RCC_AHBPeriphClockCmd ( RCC_AHBPeriph_DMA1 , ENABLE ) ;
+
+  init_usart_debug();
+
+  RCC_AHBPeriphClockCmd ( RCC_AHBPeriph_DMA1 , ENABLE ) ;
 	DMA_DeInit(DMA1_Channel1);
 	DMA_InitStructure.DMA_BufferSize = 2;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;

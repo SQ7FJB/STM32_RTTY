@@ -17,9 +17,11 @@
 #include "init.h"
 #include "config.h"
 #include "radio.h"
+#include "ublox.h"
+#include "delay.h"
 
 ///////////////////////////// test mode /////////////
-unsigned char test = 0; // 0 - normal, 1 - short frame only cunter, height, flag
+const unsigned char test = 0; // 0 - normal, 1 - short frame only cunter, height, flag
 char callsign[15] = {CALLSIGN};
 
 #define gps_RMC_dlugosc        5
@@ -61,12 +63,10 @@ char szerokosc_kier = 0;// 'S';s
 char wysokosc[6] = {"0"};
 char predkosc[6] = {"0"};
 char kierunek[6] = {"0"};
-int8_t temperatura;
 char FixOk = 0;
 int napiecie;
 unsigned int czest;
-float fdlugosc = 0;
-float fszerokosc = 0;
+
 float deg = 0;
 float fbuf = 0;
 char use_sat[3] = {'0'};
@@ -79,7 +79,6 @@ char init_trx[] = "\n\rPowering up TX\n\r";
 char powitanie[] = "greetings from earth";
 unsigned char pun = 0;
 unsigned int cun = 10;
-char temp;
 unsigned char dev = 0;
 unsigned char tx_on = 0;
 unsigned int tx_on_delay;
@@ -111,47 +110,15 @@ unsigned char bOFF = 0;
 unsigned char bCheckKay = 0;
 unsigned char GPSConf = 0;
 
+
+void processGPS();
+
+/**
+ * GPS data processing
+ */
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16) RESET) {
-
-    GPS_temp = USART_ReceiveData(USART1);
-    USART_SendData(USART3, GPS_temp);
-    if (GPS_temp == '*') {
-      crc_GPS_start = 0;
-      crc_GPS_cun = 0;
-      crc_GPS_rec = 0;
-    }
-    if (crc_GPS_start) {
-      crc_GPS ^= GPS_temp;
-    } else {
-      if (GPS_rec) {
-        if (crc_GPS_cun < 3 && crc_GPS_cun > 0) {
-          crc_GPS_rec *= 16;
-          crc_GPS_rec += HexCharToInt(GPS_temp);
-        }
-        crc_GPS_cun++;
-      }
-
-    }
-    if (GPS_temp == GPS_START) {
-      wsk_GPS_buf = GPS_buf;
-      GPS_rec = 1;
-      crc_GPS = 0;
-      crc_GPS_start = 1;
-    }
-    if (GPS_rec) {
-      *(wsk_GPS_buf++) = GPS_temp;
-    }
-
-    if (GPS_temp == GPS_STOP) {
-      GPS_rec = 0;
-      *(wsk_GPS_buf) = 0x00;
-
-      if (crc_GPS_rec == crc_GPS) {
-        new_GPS_msg = 1;
-        GPS_rec = 0;
-      }
-    }
+    ublox_handle_incoming_byte((uint8_t) USART_ReceiveData(USART1));
   }
 }
 
@@ -166,15 +133,15 @@ void TIM2_IRQHandler(void) {
       GPIO_SetBits(GPIOB, RED);
       if (*(++rtty_buf) == 0) {
         tx_on = 0;
-        tx_on_delay = tx_delay;//2500;
+        tx_on_delay = 1;//tx_delay;//2500;
         tx_enable = 0;
         radio_disable_tx();
       }
     } else if (send_rtty_status == rttyOne) {
-      temp = radio_rw_register(0x73, 0x02, 1);
+      radio_rw_register(0x73, 0x02, 1);
       GPIO_SetBits(GPIOB, RED);
     } else if (send_rtty_status == rttyZero) {
-      temp = radio_rw_register(0x73, 0x00, 1);
+      radio_rw_register(0x73, 0x00, 1);
       GPIO_ResetBits(GPIOB, RED);
     }
   }
@@ -207,77 +174,74 @@ int main(void) {
   RCC_Conf();
   NVIC_Conf();
   init_port();
+
   init_timer(RTTY_SPEED);
+  delay_init();
+
+  ublox_init();
 
   wsk_GPS_buf = GPS_buf;
 
+  int8_t temperatura;
 
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);
   print(menu);
-  temp = radio_rw_register(0x02, 0xff, 0);
+  radio_rw_register(0x02, 0xff, 0);
   //send_hex(temp);
 
-  temp = radio_rw_register(0x03, 0xff, 0);
-  temp = radio_rw_register(0x04, 0xff, 0);
+  radio_rw_register(0x03, 0xff, 0);
+  radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
   print(init_trx);
   // programowanie czestotliwosci nadawania
   radio_set_tx_frequency();
 
   // Programowanie mocy nadajnika
-  temp = radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
+  radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
 
-  temp = radio_rw_register(0x71, 0x00, 1);
-  temp = radio_rw_register(0x87, 0x08, 0);
-  temp = radio_rw_register(0x02, 0xff, 0);
-  temp = radio_rw_register(0x75, 0xff, 0);
-  temp = radio_rw_register(0x76, 0xff, 0);
-  temp = radio_rw_register(0x77, 0xff, 0);
-  temp = radio_rw_register(0x12, 0x20, 1);
-  temp = radio_rw_register(0x13, 0x00, 1);
-  temp = radio_rw_register(0x12, 0x00, 1);
-  temp = radio_rw_register(0x0f, 0x80, 1);
+  radio_rw_register(0x71, 0x00, 1);
+  radio_rw_register(0x87, 0x08, 0);
+  radio_rw_register(0x02, 0xff, 0);
+  radio_rw_register(0x75, 0xff, 0);
+  radio_rw_register(0x76, 0xff, 0);
+  radio_rw_register(0x77, 0xff, 0);
+  radio_rw_register(0x12, 0x20, 1);
+  radio_rw_register(0x13, 0x00, 1);
+  radio_rw_register(0x12, 0x00, 1);
+  radio_rw_register(0x0f, 0x80, 1);
   rtty_buf = buf_rtty;
   tx_on = 0;
   tx_enable = 1;
   //tx_enable =0;
   Button = ADCVal[1];
 
-  while (1) {
-    if (status[0] == 'A') {
-      flaga |= 0x80;
-    } else {
-      flaga &= ~0x80;
-    }
 
+  while (1) {
     if (tx_on == 0 && tx_enable) {
       start_bits = RTTY_PRE_START_BITS;
-      temp = radio_rw_register(0x11, 0xff, 0); //odczyt ADC
-      temperatura = (int8_t) (-64 + (temp * 5 / 10) - 16);
-      temp = radio_rw_register(0x0f, 0x80, 1);
+      temperatura = radio_read_temperature();
 
       napiecie = srednia(ADCVal[0] * 600 / 4096);
-
-      fdlugosc = atoff(dlugosc);
-      deg = (int) (fdlugosc / 100);
-      fbuf = fdlugosc - (deg * 100);
-      fdlugosc = deg + fbuf / 60;
-      if (dlugosc_kier == 'W') {
-        fdlugosc *= -1;
-      }
-      fszerokosc = atoff(szerokosc);
-      deg = (int) (fszerokosc / 100);
-      fbuf = fszerokosc - (deg * 100);
-      fszerokosc = deg + fbuf / 60;
-      if (szerokosc_kier == 'S') {
-        fszerokosc *= -1;
+      GPSEntry gpsData;
+      ublox_get_last_data(&gpsData);
+      if (gpsData.fix >= 3) {
+        flaga |= 0x80;
+      } else {
+        flaga &= ~0x80;
       }
       if (test) {
         sprintf(buf_rtty, "$$$$$$$%d,%d,%02x", send_cun, atoi(wysokosc), flaga);
       } else {
-        sprintf(buf_rtty, "$$$$$$$%s,%d,%s,%.5f,%.5f,%d,%d,%s,%d,%d,%d,%02x", callsign, send_cun, czas, fszerokosc,
-                fdlugosc, atoi(wysokosc), atoi(predkosc), kierunek, temperatura, napiecie, atoi(use_sat), flaga);
+        uint8_t lat_d = (uint8_t) abs(gpsData.lat_raw / 10000000);
+        uint32_t lat_fl = (uint32_t) abs(abs(gpsData.lat_raw) - lat_d * 10000000) / 100;
+        uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
+        uint32_t lon_fl = (uint32_t) abs(abs(gpsData.lon_raw) - lon_d * 10000000) / 100;
+        sprintf(buf_rtty, "$$$$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%s,%d,%d,%d,%d,%02x", callsign, send_cun,
+                gpsData.hours, gpsData.minutes, gpsData.seconds,
+                gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
+                gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
+                (gpsData.alt_raw / 1000), atoi(predkosc), kierunek, temperatura, napiecie, gpsData.fix, gpsData.sats_raw, flaga);
       }
       CRC_rtty = 0xffff;                                              //napiecie      flaga
       CRC_rtty = gps_CRC16_checksum(buf_rtty + 7);
@@ -289,13 +253,18 @@ int main(void) {
       send_cun++;
     }
 
-    if (new_GPS_msg) {
+    //processGPS();
+  }
+}
+
+void processGPS() {
+  if (new_GPS_msg) {
       //print(GPS_buf);
       new_GPS_msg = 0;
       if (strncmp(GPS_buf, "$GPRMC", 6) == 0) {
-        if (czytaj_GPS(gps_RMC_czas, gps_RMC_czas_len, GPS_buf, czas) == 0) {
-          strcpy(czas, "000000");
-        }
+//        if (czytaj_GPS(gps_RMC_czas, gps_RMC_czas_len, GPS_buf, czas) == 0) {
+//          strcpy(czas, "000000");
+//        }
 
         if (czytaj_GPS(gps_RMC_kierunek, gps_RMC_kierunek_len, GPS_buf, kierunek) == 0) {
           strcpy(kierunek, "0");
@@ -341,27 +310,25 @@ int main(void) {
       if (strncmp(GPS_buf, "$GPZDA", 6) == 0) {
         switch (GPSConf) {
           case 0:
-            sendtogps(confGPSNAV, sizeof(confGPSNAV) / sizeof(uint8_t));
+            send_ublox_packet((uBloxPacket *) confGPSNAV);
             break;
           case 1:
-            sendtogps(GPS_GSV_OFF, sizeof(GPS_GSV_OFF) / sizeof(uint8_t));
+            send_ublox_packet((uBloxPacket *) GPS_GSV_OFF);
             break;
           case 2:
-            sendtogps(GPS_GSA_OFF, sizeof(GPS_GSA_OFF) / sizeof(uint8_t));
+            send_ublox_packet((uBloxPacket *) GPS_GSA_OFF);
             break;
           case 3:
-            sendtogps(GPS_GLL_OFF, sizeof(GPS_GLL_OFF) / sizeof(uint8_t));
+            send_ublox_packet((uBloxPacket *) GPS_GLL_OFF);
             break;
           case 4:
-            sendtogps(GPS_ZDA_OFF, sizeof(GPS_ZDA_OFF) / sizeof(uint8_t));
+            send_ublox_packet((uBloxPacket *) GPS_ZDA_OFF);
             break;
           default:break;
         }
         GPSConf++;
       }
     }
-
-  }
 }
 
 #pragma clang diagnostic pop

@@ -5,6 +5,8 @@
 const char ascii[] = "0123456789ABCDEF";
 int srednia_u[5] = {0, 0, 0, 0, 0};
 
+
+
 int HexCharToInt(char ch) {
   if (ch < 48 || (ch > 57 && ch < 65) || ch > 70) return 0;
   return (ch < 58) ? ch - 48 : ch - 55;
@@ -16,32 +18,6 @@ void print(char *s) {
     }
     USART_SendData(USART3, *(s++));
   }
-}
-
-void sendtogps(uint8_t *s, unsigned char cun) {
-  unsigned char CK_A = 0;
-  unsigned char CK_B = 0;
-  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
-  }
-  USART_SendData(USART1, *(s++));
-  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
-  }
-  USART_SendData(USART1, *(s++));
-  cun--;
-  cun--;
-  while (cun-- != 0) {
-    while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
-    }
-    CK_A += *(s);
-    CK_B += CK_A;
-    USART_SendData(USART1, *(s++));
-  }
-  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
-  }
-  USART_SendData(USART1, CK_A);
-  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
-  }
-  USART_SendData(USART1, CK_B);
 }
 
 void send_hex(unsigned char data) {

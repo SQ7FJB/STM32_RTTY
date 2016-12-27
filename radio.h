@@ -20,5 +20,6 @@ void radio_set_tx_frequency();
 void radio_disable_tx();
 void radio_soft_reset();
 void radio_enable_tx();
+int8_t radio_read_temperature();
 
 #endif //STM32_RTTY_RADIO_H
