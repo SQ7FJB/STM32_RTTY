@@ -97,6 +97,7 @@ typedef struct {
 } uBloxNAVSOLPayload;
 
 typedef struct {
+  uint32_t iTOW;		//GPS Millisecond Time of Week [- ms]
   uint32_t tAcc;		//Time Accuracy Estimate [- ns]
   int32_t nano;		//Nanoseconds of second, range -1e9 .. 1e9 (UTC) [- ns]
   uint16_t year;		//Year, range 1999..2099 (UTC) [- y]
