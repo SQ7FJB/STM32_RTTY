@@ -71,7 +71,7 @@ void TIM2_IRQHandler(void) {
   if (tx_on /*&& ++cun_rtty == 17*/) {
     send_rtty_status = send_rtty((char *) rtty_buf);
     if (send_rtty_status == rttyEnd) {
-      GPIO_ResetBits(GPIOB, RED);
+      GPIO_SetBits(GPIOB, RED);
       if (*(++rtty_buf) == 0) {
         tx_on = 0;
         tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
@@ -104,8 +104,6 @@ void TIM2_IRQHandler(void) {
   }
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
 int main(void) {
 #ifdef DEBUG
   debug();
@@ -151,6 +149,8 @@ int main(void) {
   //Button = ADCVal[1];
   radio_enable_tx();
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
   while (1) {
     if (tx_on == 0 && tx_enable) {
       start_bits = RTTY_PRE_START_BITS;
@@ -169,7 +169,7 @@ int main(void) {
       uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
       uint32_t lon_fl = (uint32_t) abs(abs(gpsData.lon_raw) - lon_d * 10000000) / 100;
 
-      sprintf(buf_rtty, "$$$$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d,%d,%d,%d,%02x", callsign, send_cun,
+      sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d,%d,%d,%d,%02x", callsign, send_cun,
               gpsData.hours, gpsData.minutes, gpsData.seconds,
               gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
               gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
@@ -177,7 +177,7 @@ int main(void) {
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
       CRC_rtty = 0xffff;                                              //napiecie      flaga
-      CRC_rtty = gps_CRC16_checksum(buf_rtty + 7);
+      CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
       sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
       rtty_buf = buf_rtty;
       radio_enable_tx();
@@ -189,9 +189,8 @@ int main(void) {
       __WFI();
     }
   }
-}
-
 #pragma clang diagnostic pop
+}
 
 #ifdef  DEBUG
 void assert_failed(uint8_t* file, uint32_t line)

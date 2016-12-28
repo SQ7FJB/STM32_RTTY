@@ -16,7 +16,7 @@ uint8_t _spi_sendrecv(const uint16_t data_word) {
   return (uint8_t) SPI_I2S_ReceiveData(SPI2);
 }
 
-uint8_t radio_rw_register(const uint8_t register_addr, uint8_t value, uint8_t write){
+inline uint8_t radio_rw_register(const uint8_t register_addr, uint8_t value, uint8_t write){
   return _spi_sendrecv(((write ? register_addr | WR : register_addr) << 8) | value);
 }
 

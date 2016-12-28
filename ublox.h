@@ -157,26 +157,28 @@ typedef struct {
 } uBloxCFGRSTPayload;
 
 typedef struct {
-  uint16_t mask;		//Parameters Bitmask. Only the masked parameters will be applied. [- -]
-  uint8_t dynModel;		//Dynamic platform model: 0: portable 2: stationary 3: pedestrian 4: automotive 5: sea 6: airborne with <1g acceleration 7: airborne with <2g acceleration 8: airborne with <4g acceleration 9: wrist worn watch (not supported in protocol versions less than 18) [- -]
-  uint8_t fixMode;		//Position Fixing Mode: 1: 2D only 2: 3D only 3: auto 2D/3D [- -]
+  uint16_t mask;		//Parameters Bitmask. Only the masked parameters will be applied. (see graphic below) [- -]
+  uint8_t dynModel;		//Dynamic Platform model: - 0 􀀀 Portable - 2 􀀀 Stationary - 3 􀀀 Pedestrian - 4 􀀀 Automotive - 5 􀀀 Sea - 6 􀀀 Airborne with <1g Acceleration - 7 􀀀 Airborne with <2g Acceleration - 8 􀀀 Airborne with <4g Acceleration [- -]
+  uint8_t fixMode;		//Position Fixing Mode. - 1: 2D only - 2: 3D only - 3: Auto 2D/3D [- -]
   int32_t fixedAlt;		//Fixed altitude (mean sea level) for 2D fix mode. [0.01 m]
   uint32_t fixedAltVar;		//Fixed altitude variance for 2D mode. [0.0001 m^2]
   int8_t minElev;		//Minimum Elevation for a GNSS satellite to be used in NAV [- deg]
-  uint8_t drLimit;		//Reserved [- s]
+  uint8_t drLimit;		//Maximum time to perform dead reckoning (linear extrapolation) in case of GPS signal loss [- s]
   uint16_t pDop;		//Position DOP Mask to use [0.1 -]
   uint16_t tDop;		//Time DOP Mask to use [0.1 -]
   uint16_t pAcc;		//Position Accuracy Mask [- m]
   uint16_t tAcc;		//Time Accuracy Mask [- m]
   uint8_t staticHoldThresh;		//Static hold threshold [- cm/s]
-  uint8_t dgnssTimeout;		//DGNSS timeout [- s]
-  uint8_t cnoThreshNumSVs;		//Number of satellites required to have C/N0 above cnoThresh for a fix to be attempted [- -]
-  uint8_t cnoThresh;		//C/N0 threshold for deciding whether to attempt a fix [- dBHz]
-  uint8_t reserved1[2];		//Reserved [- -]
-  uint16_t staticHoldMaxDist;		//Static hold distance threshold (before quitting static hold) [- m]
-  uint8_t utcStandard;		//UTC standard to be used: 0: Automatic; receiver selects based on GNSS configuration (see GNSS time bases). 3: UTC as operated by the U.S. Naval Observatory (USNO); derived from GPS time 6: UTC as operated by the former Soviet Union; derived from GLONASS time 7: UTC as operated by the National Time Service Center, China; derived from BeiDou time (not supported in protocol versions less than 16). [- -]
-  uint8_t reserved2[5];		//Reserved [- -]
+  uint8_t dgpsTimeOut;		//DGPS timeout, firmware 7 and newer only [- s]
+  uint32_t reserved2;		//Always set to zero [- -]
+  uint32_t reserved3;		//Always set to zero [- -]
+  uint32_t reserved4;		//Always set to zero [- -]
 } uBloxCFGNAV5Payload;
+
+typedef struct {
+  uint8_t reserved1;		//Always set to 8 [- -]
+  uint8_t lpMode;		//Low Power Mode 0: Max. performance mode 1: Power Save Mode (>= FW 6.00 only) 2-3: reserved 4: Eco mode 5-255: reserved [- -]
+} uBloxCFGRXMPayload;
 
 typedef union {
   uBloxNAVPVTPayload navpvt;
@@ -188,6 +190,7 @@ typedef union {
   uBloxNAVTIMEUTCPayload navtimeutc;
   uBloxACKACKayload ackack;
   uBloxCFGRSTPayload cfgrst;
+  uBloxCFGRXMPayload cfgrxm;
 } ubloxPacketData;
 
 typedef struct __attribute__((packed)){
