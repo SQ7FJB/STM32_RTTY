@@ -26,7 +26,7 @@
 //***************************************************
 
 //********** frame delay in msec**********
-#define tx_delay  100    // 2500 ~2,5  w polu flaga wpisywany jest tx_delay/1000 modulo 16 czyl;i dla 16000 bedzie 0 póki co.
+#define tx_delay  1000
 
 
 #endif //STM32_RTTY_CONFIG_H

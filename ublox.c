@@ -66,13 +66,19 @@ void ublox_get_last_data(GPSEntry * gpsEntry){
 }
 
 void ublox_init(){
+  uBloxPacket msgcfgrst = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x04, .payloadSize=sizeof(uBloxCFGRSTPayload)},
+      .data.cfgrst = { .navBbrMask=0xffff, .resetMode=0, .reserved1 = 0}
+  };
+  send_ublox_packet(&msgcfgrst);
+  _delay_ms(800);
+
   uBloxPacket msfcgprt = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x00, .payloadSize=sizeof(uBloxCFGPRTPayload)},
-      .data.cfgprt = {.portID=1, .reserved1=0, .txReady=0, .mode=0b00100011000000, .baudRate=9600,
+      .data.cfgprt = {.portID=1, .reserved1=0, .txReady=0, .mode=0b00100011000000, .baudRate=57600,
           .inProtoMask=1, .outProtoMask=1, .flags=0, .reserved2={0,0}}};
   send_ublox_packet(&msfcgprt);
   _delay_ms(10);
-//  init_usart_gps(57600);
-//  _delay_ms(10);
+  init_usart_gps(57600);
+  _delay_ms(10);
 
   uBloxPacket msgcfgmsg = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x01, .payloadSize=sizeof(uBloxCFGMSGPayload)},
     .data.cfgmsg = {.msgClass=0x01, .msgID=0x02, .rate=1}};
@@ -98,28 +104,28 @@ void ublox_init(){
 void ublox_handle_incoming_byte(uint8_t data){
   static uint8_t sync = 0;
   static uint8_t buffer_pos = 0;
-  volatile static uBloxPacket incoming_packet;
-
+  volatile static uint8_t  incoming_packet_buffer[sizeof(uBloxPacket) + sizeof(uBloxChecksum)];
+  static uBloxPacket * incoming_packet = (uBloxPacket *) incoming_packet_buffer;
   if (!sync){
     if (!buffer_pos && data == 0xB5){
       buffer_pos = 1;
-      incoming_packet.header.sc1 = data;
+      incoming_packet->header.sc1 = data;
     } else if (buffer_pos == 1 && data == 0x62){
       sync = 1;
       buffer_pos = 2;
-      incoming_packet.header.sc2 = data;
+      incoming_packet->header.sc2 = data;
     } else {
       buffer_pos = 0;
     }
   } else {
-    ((uint8_t *)&incoming_packet)[buffer_pos] = data;
-    if ((buffer_pos >= sizeof(uBloxHeader)-1) && (buffer_pos-1 == (incoming_packet.header.payloadSize + sizeof(uBloxHeader) + sizeof(uBloxChecksum)))){
-      ublox_handle_packet((uBloxPacket *) &incoming_packet);
+    ((uint8_t *)incoming_packet)[buffer_pos] = data;
+    if ((buffer_pos >= sizeof(uBloxHeader)-1) && (buffer_pos-1 == (incoming_packet->header.payloadSize + sizeof(uBloxHeader) + sizeof(uBloxChecksum)))){
+      ublox_handle_packet((uBloxPacket *) incoming_packet);
       buffer_pos = 0;
       sync = 0;
     } else {
       buffer_pos++;
-      if (buffer_pos == 255) {
+      if (buffer_pos >= sizeof(uBloxPacket) + sizeof(uBloxChecksum)) {
         buffer_pos = 0;
         sync = 0;
       }
@@ -152,9 +158,24 @@ void ublox_handle_packet(uBloxPacket *pkt) {
       currentGPSData.fix = pkt->data.navsol.gpsFix;
       currentGPSData.sats_raw = pkt->data.navsol.numSV;
     } else if (pkt->header.messageClass == 0x01 && pkt->header.messageId == 0x21){
-      currentGPSData.hours = pkt->data.navtimeutc.hour;
-      currentGPSData.minutes = pkt->data.navtimeutc.min;
-      currentGPSData.seconds = pkt->data.navtimeutc.sec;
+      if (pkt->data.navtimeutc.valid & 1){
+        currentGPSData.hours = pkt->data.navtimeutc.hour;
+        currentGPSData.minutes = pkt->data.navtimeutc.min;
+        currentGPSData.seconds = pkt->data.navtimeutc.sec;
+      } else {
+        currentGPSData.seconds += 1;
+        if (currentGPSData.seconds > 60){
+          currentGPSData.seconds = 0;
+          currentGPSData.minutes += 1;
+          if (currentGPSData.minutes > 60){
+            currentGPSData.minutes = 0;
+            currentGPSData.hours += 1;
+            if (currentGPSData.hours > 23){
+              currentGPSData.hours = 0;
+            }
+          }
+        }
+      }
     } else if (pkt->header.messageClass == 0x05 && pkt->header.messageId == 0x01){
       currentGPSData.fix += 1;
     } else if (pkt->header.messageClass == 0x05 && pkt->header.messageId == 0x00){

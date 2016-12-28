@@ -136,6 +136,23 @@ typedef struct {
   uint8_t rate;		//Send rate on current Port [- -]
 } uBloxCFGMSGPayload;
 
+
+typedef struct {
+  uint16_t navBbrMask;		//BBR Sections to clear. The following Special Sets apply:
+  // 0x0000 Hotstart
+  // 0x0001 Warmstart
+  // 0xFFFF Coldstart [- -]
+  uint8_t resetMode;		//Reset Type
+  // - 0x00 - Hardware reset (Watchdog) immediately
+  // - 0x01 - Controlled Software reset
+  // - 0x02 - Controlled Software reset (GPS only)
+  // - 0x04 - Hardware reset (Watchdog) after shutdown (>=FW6.0)
+  // - 0x08 - Controlled GPS stop
+  // - 0x09 - Controlled GPS start [- -]
+  // - 0x09 - Controlled GPS start [- -]
+  uint8_t reserved1;		//Reserved [- -]
+} uBloxCFGRSTPayload;
+
 typedef struct {
   uint16_t mask;		//Parameters Bitmask. Only the masked parameters will be applied. [- -]
   uint8_t dynModel;		//Dynamic platform model: 0: portable 2: stationary 3: pedestrian 4: automotive 5: sea 6: airborne with <1g acceleration 7: airborne with <2g acceleration 8: airborne with <4g acceleration 9: wrist worn watch (not supported in protocol versions less than 18) [- -]
@@ -167,6 +184,7 @@ typedef union {
   uBloxNAVSOLPayload navsol;
   uBloxNAVTIMEUTCPayload navtimeutc;
   uBloxACKACKayload ackack;
+  uBloxCFGRSTPayload cfgrst;
 } ubloxPacketData;
 
 typedef struct __attribute__((packed)){
