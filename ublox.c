@@ -1,5 +1,5 @@
 //
-// Created by Admin on 2016-12-27.
+// Created by SQ5RWU on 2016-12-27.
 //
 
 #include <stm32f10x_usart.h>
@@ -14,6 +14,8 @@ void _sendSerialByte(uint8_t message) {
   while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
   }
   USART_SendData(USART1, message);
+  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
+  }
 }
 
 void send_ublox(uint8_t msgClass, uint8_t msgId, uint8_t *payload, uint16_t payloadSize) {
@@ -73,11 +75,11 @@ void ublox_init(){
   _delay_ms(800);
 
   uBloxPacket msfcgprt = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x00, .payloadSize=sizeof(uBloxCFGPRTPayload)},
-      .data.cfgprt = {.portID=1, .reserved1=0, .txReady=0, .mode=0b00100011000000, .baudRate=57600,
+      .data.cfgprt = {.portID=1, .reserved1=0, .txReady=0, .mode=0b00100011000000, .baudRate=38400,
           .inProtoMask=1, .outProtoMask=1, .flags=0, .reserved2={0,0}}};
   send_ublox_packet(&msfcgprt);
-  _delay_ms(10);
-  init_usart_gps(57600);
+  init_usart_gps(38400, 1);
+
   _delay_ms(10);
 
   uBloxPacket msgcfgmsg = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x01, .payloadSize=sizeof(uBloxCFGMSGPayload)},
@@ -104,7 +106,7 @@ void ublox_init(){
 void ublox_handle_incoming_byte(uint8_t data){
   static uint8_t sync = 0;
   static uint8_t buffer_pos = 0;
-  volatile static uint8_t  incoming_packet_buffer[sizeof(uBloxPacket) + sizeof(uBloxChecksum)];
+  static uint8_t incoming_packet_buffer[sizeof(uBloxPacket) + sizeof(uBloxChecksum)];
   static uBloxPacket * incoming_packet = (uBloxPacket *) incoming_packet_buffer;
   if (!sync){
     if (!buffer_pos && data == 0xB5){
@@ -137,8 +139,9 @@ void ublox_handle_packet(uBloxPacket *pkt) {
   uBloxChecksum cksum = ublox_calc_checksum(pkt->header.messageClass, pkt->header.messageId, (const uint8_t *) &pkt->data, pkt->header.payloadSize);
   uBloxChecksum *checksum = (uBloxChecksum *)(((uint8_t*)&pkt->data) + pkt->header.payloadSize);
   if (cksum.ck_a != checksum->ck_a || cksum.ck_b != checksum->ck_b) {
-    currentGPSData.fix = 0xf;
+    currentGPSData.bad_packets += 1;
   } else {
+    currentGPSData.ok_packets += 1;
     if (pkt->header.messageClass == 0x01 && pkt->header.messageId == 0x07){
       currentGPSData.fix = pkt->data.navpvt.fixType;
       currentGPSData.lat_raw = pkt->data.navpvt.lat;

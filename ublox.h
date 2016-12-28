@@ -1,5 +1,5 @@
 //
-// Created by Admin on 2016-12-27.
+// Created by SQ5RWU on 2016-12-27.
 //
 
 #ifndef STM32_RTTY_UBLOX_H
@@ -16,6 +16,8 @@ typedef struct {
   uint8_t minutes;
   uint8_t hours;
   uint8_t fix;
+  uint16_t ok_packets;
+  uint16_t bad_packets;
 } GPSEntry;
 
 typedef struct  __attribute__((packed)){

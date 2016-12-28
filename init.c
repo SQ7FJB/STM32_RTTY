@@ -18,9 +18,12 @@ DMA_InitTypeDef DMA_InitStructure;
 
 #define ADC1_DR_Address    ((uint32_t)0x4001244C)
 
-void init_usart_gps(const uint32_t speed) {
+void init_usart_gps(const uint32_t speed, const uint8_t enable_irq) {
   NVIC_DisableIRQ(USART1_IRQn);
-  USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+	USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+	USART_ClearITPendingBit(USART1, USART_IT_ORE);
+
   USART_Cmd(USART1, DISABLE);
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);// | RCC_APB2Periph_AFIO, ENABLE);
@@ -33,8 +36,10 @@ void init_usart_gps(const uint32_t speed) {
   USART_Init(USART1, &USART_InitStructure);
 
   USART_Cmd(USART1, ENABLE);
-  USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-  NVIC_EnableIRQ(USART1_IRQn);
+  if (enable_irq){
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    NVIC_EnableIRQ(USART1_IRQn);
+  }
 }
 
 void init_usart_debug() {
@@ -126,7 +131,7 @@ void init_port()
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOA, &GPIO_Conf);
 
-  init_usart_gps(9600);
+  init_usart_gps(9600, 0);
 
   GPIO_Conf.GPIO_Pin = GPIO_Pin_10;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;

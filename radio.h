@@ -1,5 +1,5 @@
 //
-// Created by Admin on 2016-12-24.
+// Created by SQ5RWU on 2016-12-24.
 //
 
 #ifndef STM32_RTTY_RADIO_H

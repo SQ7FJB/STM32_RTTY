@@ -13,44 +13,27 @@ int HexCharToInt(char ch) {
 }
 
 void print(char *s) {
+  #ifdef DEBUG
   while (*s) {
     while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET) {
     }
     USART_SendData(USART3, *(s++));
   }
+  #endif
 }
 
 void send_hex(unsigned char data) {
+  #ifdef DEBUG
   while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET) {
   }
   USART_SendData(USART3, ascii[data >> 4]);
   while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET) {
   }
   USART_SendData(USART3, ascii[data & 0x0f]);
+  #endif
 }
 
 
-unsigned char czytaj_GPS(unsigned char pos, unsigned char len, char *source, char *destination) {
-  char *wyn;
-  char pet = 0;
-  wyn = source;
-  while (pos-- != 0) {
-    while (*(wyn++) != ',');
-  }
-  if (*(wyn) == 0) {
-    return 0;
-  } else {
-    while ((*(wyn) != ',') && (*(wyn) != 0) && (len-- != 0)) {
-      *(destination++) = *(wyn++);
-      pet = 1;
-    }
-    if (pet == 0) {
-      return 0;
-    }
-    *(destination) = 0;
-  }
-  return 1;
-}
 
 uint16_t gps_CRC16_checksum(char *string) {
   uint16_t crc = 0xffff;
@@ -59,7 +42,7 @@ uint16_t gps_CRC16_checksum(char *string) {
     crc = crc ^ (*(string++) << 8);
     for (i = 0; i < 8; i++) {
       if (crc & 0x8000)
-        crc = (crc << 1) ^ 0x1021;
+        crc = (uint16_t) ((crc << 1) ^ 0x1021);
       else
         crc <<= 1;
     }
