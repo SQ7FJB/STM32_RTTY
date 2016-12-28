@@ -12,6 +12,7 @@
 #include "stdlib.h"
 #include <stdio.h>
 #include <string.h>
+#include <misc.h>
 #include "f_rtty.h"
 #include "fun.h"
 #include "init.h"
@@ -183,6 +184,9 @@ int main(void) {
       tx_on = 1;
 
       send_cun++;
+    } else {
+      NVIC_SystemLPConfig(NVIC_LP_SEVONPEND, DISABLE);
+      __WFI();
     }
   }
 }
