@@ -46,6 +46,8 @@
 #define QAPRSCOMMON_H_
 
 #include <stdint.h>
+#include <stddef.h>
+#include <string.h>
 
 /**
  * @brief Wyniki zwracane przez metodę send

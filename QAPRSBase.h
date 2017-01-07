@@ -81,6 +81,8 @@ private:
 	static const uint16_t toneSendTime1200 = 815;
 #elif F_CPU == 8000000UL
 	static const uint16_t toneSendTime1200 = 785;
+#else
+	static const uint16_t toneSendTime1200 = 815;
 #endif
 	/**
 	 * @brief Czas wysyłania podedynczego tonu. W ms.

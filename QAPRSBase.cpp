@@ -159,22 +159,24 @@ inline void QAPRSBase::toggleTone() {
  * Inicjalizuj Timer1 który jest używany do generowania MARK i SPACE
  */
 void QAPRSBase::initializeTimer1() {
-	noInterrupts();
-	TIMSK1 |= _BV(TOIE1);
-	TCCR1A = 0;
-	TCCR1C = 0;
-	interrupts();
+	//TODO: przepisać na STM32
+//	noInterrupts();
+//	TIMSK1 |= _BV(TOIE1);
+//	TCCR1A = 0;
+//	TCCR1C = 0;
+//	interrupts();
 }
 
 /**
  * Inicjalizuj radio i piny.
  */
 void QAPRSBase::initializeRadio() {
-	if (this->sensePin){
-		pinMode(abs(this->sensePin), INPUT);
-		digitalWrite(abs(this->sensePin), LOW);
-	}
-	pinMode(abs(this->txEnablePin), OUTPUT);
+	//TODO: przepisać na STM32
+//	if (this->sensePin){
+//		pinMode(abs(this->sensePin), INPUT);
+//		digitalWrite(abs(this->sensePin), LOW);
+//	}
+//	pinMode(abs(this->txEnablePin), OUTPUT);
 
 	this->disableTranssmision();
 	this->initializeTimer1();
@@ -184,7 +186,8 @@ void QAPRSBase::initializeRadio() {
  * Włącz nadawanie. Metoda dodatkowo realizuje opóźnienie nadawania jesli ustawiono. @see QAPRSBase::setTxDelay
  */
 void QAPRSBase::enableTransmission() {
-	digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? HIGH : LOW);
+	//TODO: przepisać na STM32
+	//digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? HIGH : LOW);
 	this->doTxDelay();
 }
 
@@ -192,7 +195,8 @@ void QAPRSBase::enableTransmission() {
  * Wyłącz nadawanie.
  */
 void QAPRSBase::disableTranssmision() {
-	digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? LOW : HIGH);
+	//TODO: przepisać na STM32
+	//digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? LOW : HIGH);
 }
 
 /**
@@ -260,7 +264,8 @@ QAPRSReturnCode QAPRSBase::send(char* buffer, size_t length) {
 		} else {
 			// jesli nie mozna to czekamy 100ms i sprawdzamy ponownie
 			// maks. czas oczekiwania to channelFreeWaitingMS
-			delay(100);
+			//TODO: przepisać na STM32
+			//delay(100);
 			timeout -= 100;
 		}
 	}
@@ -441,7 +446,8 @@ void QAPRSBase::parseRelays(const char* relays, char* dst) {
  */
 void QAPRSBase::doTxDelay() {
 	if (this->txDelay){
-		delay(this->txDelay);
+		//TODO: przepisać na STM32
+		//delay(this->txDelay);
 	}
 }
 
@@ -473,10 +479,11 @@ void QAPRSBase::setRelays(char* relays) {
  * @param us
  */
 void QAPRSBase::delayuSeconds(uint16_t us) {
-	unsigned long time = micros();
-	while(micros() - time < us){
-		//asm("nop");
-	}
+	//TODO: przepisać na STM32
+	//unsigned long time = micros();
+//	while(micros() - time < us){
+//		//asm("nop");
+//	}
 }
 
 
@@ -488,10 +495,11 @@ void QAPRSBase::setTxDelay(uint16_t txDelay) {
 	this->txDelay = txDelay;
 }
 
-ISR (TIMER1_OVF_vect)  // timer1 overflow interrupt
-{
-	QAPRSGlobalObject->timerInterruptHandler();
-}
+//TODO: przepisać na STM32
+//ISR (TIMER1_OVF_vect)  // timer1 overflow interrupt
+//{
+//	QAPRSGlobalObject->timerInterruptHandler();
+//}
 
 
 
