@@ -127,7 +127,7 @@ int main(void) {
   radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
   // programowanie czestotliwosci nadawania
-  radio_set_tx_frequency();
+  radio_set_tx_frequency(RTTY_FREQUENCY);
 
   // Programowanie mocy nadajnika
   radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
