@@ -7,7 +7,7 @@ extern "C" {
 /** Initialize delay core - configure SysTick timer */
 void delay_init();
 
-void _delay_us(uint32_t us, uint8_t precise);
+void _delay_us(uint16_t us, uint8_t precise);
 
 void _delay_ms(uint32_t ms);
 

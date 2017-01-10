@@ -10,7 +10,8 @@
 QAPRSBase qaprs;
 
 void aprs_init(){
-  qaprs.init(0, 0, (char *) "SQ5RWU", '0', (char *) "APZQAP", '0', (char *) "WIDE1-1");
+  qaprs.init(0, 0, (char *) "SQ5RWU", '7', (char *) "URQU70", '0', (char *) "WIDE1-1,WIDE2-1");
+
 }
 
 void aprs_timer_handler() {

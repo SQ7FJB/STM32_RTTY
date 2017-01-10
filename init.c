@@ -80,10 +80,10 @@ void RCC_Conf()
 	  {
 			FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
 			FLASH_SetLatency(FLASH_Latency_2);
-			RCC_HCLKConfig(RCC_SYSCLK_Div4); // 25 / 4 -> 6.25
-			RCC_PCLK2Config(RCC_HCLK_Div4);  // 6.25 / 4
-			RCC_PCLK1Config(RCC_HCLK_Div2);  // 6.25 / 2
-			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE); // 25
+			RCC_HCLKConfig(RCC_SYSCLK_Div4); // 24 / 4 -> 6
+			RCC_PCLK2Config(RCC_HCLK_Div4);  // 6 / 4 = 1,5 -> APB2
+			RCC_PCLK1Config(RCC_HCLK_Div2);  // 6 / 2 = 3 -> APB1
+			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE); // 24
 			while(RCC_GetSYSCLKSource() != 0x04);
   }
 }
@@ -217,10 +217,10 @@ void spi_deinit() {
 
 void init_timer(const int rtty_speed) {
   TIM_TimeBaseInitTypeDef TIM2_TimeBaseInitStruct;
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
-  RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2,DISABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+  RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2, DISABLE);
 
-  TIM2_TimeBaseInitStruct.TIM_Prescaler = 6/*0*/ - 1;// tick every 1/100000 s
+  TIM2_TimeBaseInitStruct.TIM_Prescaler = 6/*0*/ - 1;// tick every 1/1000000 s
   TIM2_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
   TIM2_TimeBaseInitStruct.TIM_Period = (uint16_t) ((1000000 / rtty_speed) - 1);
   TIM2_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;

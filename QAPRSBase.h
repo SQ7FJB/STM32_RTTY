@@ -82,7 +82,7 @@ private:
 #elif F_CPU == 8000000UL
 	static const uint16_t toneSendTime1200 = 785;
 #else
-	static const uint16_t toneSendTime1200 = 766;
+	static const uint16_t toneSendTime1200 = 717;
 #endif
 	/**
 	 * @brief Czas wysyłania podedynczego tonu. W ms.
@@ -94,11 +94,11 @@ private:
 	 * @brief Czas oczekiwania na zwolnienie kanału.
 	 * @details Co 100ms sprawdzamy czy można już nadawać @see canTransmit
 	 */
-	static const uint16_t channelFreeWaitingMS = 2000; // 2000 ms
+	static const uint16_t channelFreeWaitingMS = 1; // 2000 ms
 	/**
 	 * @brief Domylslny czas pomiędzy włączeniem nadawania a rozpoczęciem generowania AFSK
 	 */
-	static const uint16_t defaultTxDelay = 50; // 300 ms
+	static const uint16_t defaultTxDelay = 1; // 300 ms
 	/**
 	 * @brief Pin Arduino na którym ustawiamy logiczną 1 w momencie nadawania
 	 */
@@ -182,8 +182,8 @@ public:
 
 private:
   static const uint16_t toneSendTime = 833;
-  static const uint16_t MarkTimerValue = (uint16_t) ((1000000 /  ((1338)*2)) - 1);
-  static const uint16_t SpaceTimerValue = (uint16_t) ((1000000 /  ((-20+2670)*2)) - 1);
+  static const uint16_t MarkTimerValue = (uint16_t) ((1000000 /  ((1245)*2)) - 1);
+  static const uint16_t SpaceTimerValue = (uint16_t) ((1000000 /  ((2750)*2)) - 1);
   void togglePin();
   uint8_t pin;
 public:
