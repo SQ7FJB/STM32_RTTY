@@ -20,7 +20,7 @@
 #include "radio.h"
 #include "ublox.h"
 #include "delay.h"
-
+#include "aprs.h"
 ///////////////////////////// test mode /////////////
 const unsigned char test = 0; // 0 - normal, 1 - short frame only cunter, height, flag
 char callsign[15] = {CALLSIGN};
@@ -49,8 +49,6 @@ volatile char *rtty_buf;
 unsigned char cun_off = 0;
 
 
-void processGPS();
-
 /**
  * GPS data processing
  */
@@ -60,7 +58,7 @@ void USART1_IRQHandler(void) {
   }else if (USART_GetITStatus(USART1, USART_IT_ORE) != RESET) {
     USART_ReceiveData(USART1);
   } else {
-	  USART_ReceiveData(USART1);
+    USART_ReceiveData(USART1);
   }
 }
 
@@ -68,40 +66,45 @@ void TIM2_IRQHandler(void) {
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
   }
-  if (tx_on /*&& ++cun_rtty == 17*/) {
-    send_rtty_status = send_rtty((char *) rtty_buf);
-    if (send_rtty_status == rttyEnd) {
-      GPIO_SetBits(GPIOB, RED);
-      if (*(++rtty_buf) == 0) {
-        tx_on = 0;
-        tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
-        tx_enable = 0;
-        radio_disable_tx();
+  if (aprs_is_active()){
+    aprs_timer_handler();
+  } else {
+    if (tx_on /*&& ++cun_rtty == 17*/) {
+      send_rtty_status = send_rtty((char *) rtty_buf);
+      if (send_rtty_status == rttyEnd) {
+        GPIO_SetBits(GPIOB, RED);
+        if (*(++rtty_buf) == 0) {
+          tx_on = 0;
+          tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
+          tx_enable = 0;
+          radio_disable_tx();
+        }
+      } else if (send_rtty_status == rttyOne) {
+        radio_rw_register(0x73, 0x02, 1);
+        GPIO_SetBits(GPIOB, RED);
+      } else if (send_rtty_status == rttyZero) {
+        radio_rw_register(0x73, 0x00, 1);
+        GPIO_ResetBits(GPIOB, RED);
       }
-    } else if (send_rtty_status == rttyOne) {
-      radio_rw_register(0x73, 0x02, 1);
-      GPIO_SetBits(GPIOB, RED);
-    } else if (send_rtty_status == rttyZero) {
-      radio_rw_register(0x73, 0x00, 1);
-      GPIO_ResetBits(GPIOB, RED);
+    }
+    if (!tx_on && --tx_on_delay == 0) {
+      tx_enable = 1;
+      tx_on_delay--;
+    }
+    if (--cun == 0) {
+      if (pun) {
+        GPIO_ResetBits(GPIOB, GREEN);
+        pun = 0;
+      } else {
+        if (flaga & 0x80) {
+          GPIO_SetBits(GPIOB, GREEN);
+        }
+        pun = 1;
+      }
+      cun = 200;
     }
   }
-  if (!tx_on && --tx_on_delay == 0) {
-    tx_enable = 1;
-    tx_on_delay--;
-  }
-  if (--cun == 0) {
-    if (pun) {
-      GPIO_ResetBits(GPIOB, GREEN);
-      pun = 0;
-    } else {
-      if (flaga & 0x80) {
-        GPIO_SetBits(GPIOB, GREEN);
-      }
-      pun = 1;
-    }
-    cun = 200;
-  }
+
 }
 
 int main(void) {
@@ -114,7 +117,6 @@ int main(void) {
 
   init_timer(RTTY_SPEED);
   delay_init();
-
   ublox_init();
 
   int8_t temperatura;
@@ -147,7 +149,20 @@ int main(void) {
   tx_enable = 1;
   //tx_enable =0;
   //Button = ADCVal[1];
+  aprs_init();
   radio_enable_tx();
+  uint16_t x = 760;
+  while (1){
+    radio_enable_tx();
+    USART_Cmd(USART1, DISABLE);
+    x+=1;
+    //aprs_change_tone_time(x);
+    aprs_test(x);
+    USART_Cmd(USART1, ENABLE);
+
+    radio_disable_tx();
+    _delay_ms(1000);
+  }
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"

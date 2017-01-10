@@ -27,7 +27,7 @@ void radio_set_tx_frequency(const float freq_in_mhz) {
   uint8_t gen_div  =  3;  //Stała nie zmieniac
   uint16_t fc = (uint16_t) (((freq_in_mhz / ((SI4032_CLOCK / gen_div) * (hbsel + 1))) - fb - 24) * 64000);
 
-  radio_rw_register(0x72, 0, 1);
+  radio_rw_register(0x72, 10, 1);
 
   radio_rw_register(0x75, (uint8_t) (0b01000000 | (fb & 0b11111) | ((hbsel & 0b1) << 5)), 1);
   radio_rw_register(0x76, (uint8_t) (((uint16_t)fc >> 8) & 0xff), 1);

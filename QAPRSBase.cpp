@@ -43,6 +43,9 @@
  */
 
 #include "QAPRSBase.h"
+#include "delay.h"
+#include "radio.h"
+#include "init.h"
 
 QAPRSBase * QAPRSGlobalObject;
 /**
@@ -66,7 +69,6 @@ void QAPRSBase::ax25SendHeaderBegin() {
 	this->currentTone = QAPRSMark;
 	//this->currentTone = QAPRSSpace;
 
-
 	for (uint8_t i=0;i<this->ax25HeaderFlagFieldCount;i++)
 	{
 		this->ax25SendByte(this->ax25FlagFieldValue);
@@ -84,9 +86,9 @@ void QAPRSBase::ax25SendFooter() {
 	 * @see: http://www.tapr.org/pub_ax25.html#2.2.8
 	 */
 	static uint8_t tmp;
-	tmp = (ax25CRC >> 8) ^ 0xff;
+	tmp = (uint8_t) ((ax25CRC >> 8) ^ 0xff);
 
-	this->ax25SendByte((this->ax25CRC) ^ 0xff);
+	this->ax25SendByte((uint8_t) ((this->ax25CRC) ^ 0xff));
 	this->ax25SendByte(tmp);
 	this->ax25SendByte(this->ax25FlagFieldValue);
 	this->disableTranssmision();
@@ -104,11 +106,11 @@ void QAPRSBase::ax25SendByte(uint8_t byte) {
 
 
 	// zapisujemy sobie czy nadawany bit nie jest aby flagą - bo ją nadajemy w specjalny sposób
-	is_flag = byte == this->ax25FlagFieldValue;
+	is_flag = (uint8_t) (byte == this->ax25FlagFieldValue);
 
 	for(i=0;i<8;i++){
 		// nadawanie od najmniejznaczacego bitu
-		ls_bit = byte & 1;
+		ls_bit = (uint8_t) (byte & 1);
 
 		if (is_flag){
 			bit_stuffing_counter = 0;
@@ -152,31 +154,52 @@ void QAPRSBase::ax25CalcCRC(uint8_t ls_bit) {
  * Przełącz aktualnie generowany ton. @see QAPRSSendingTone
  */
 inline void QAPRSBase::toggleTone() {
-	this->currentTone = (this->currentTone == QAPRSMark) ? QAPRSSpace : QAPRSMark;
+	this->currentTone = (this->currentTone == QAPRSSpace) ? QAPRSMark : QAPRSSpace;
+
+  TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));
+
+  uint16_t used = TIM2->CNT;
+  this->timer1StartValue = (this->currentTone == QAPRSMark) ? MarkTimerValue : SpaceTimerValue;
+
+  if (used >= this->timer1StartValue){
+    this->timerInterruptHandler();
+  } else {
+    TIM2->ARR = this->timer1StartValue - used;
+    TIM2->CNT = 0;
+  }
+
+  TIM2->CR1 |= TIM_CR1_CEN;
 }
 
 /**
  * Inicjalizuj Timer1 który jest używany do generowania MARK i SPACE
  */
 void QAPRSBase::initializeTimer1() {
-	//TODO: przepisać na STM32
-//	noInterrupts();
-//	TIMSK1 |= _BV(TOIE1);
-//	TCCR1A = 0;
-//	TCCR1C = 0;
-//	interrupts();
+    #if defined(__arm__)
+    //TODO: przepisać na STM32
+    #else
+        noInterrupts();
+        TIMSK1 |= _BV(TOIE1);
+        TCCR1A = 0;
+        TCCR1C = 0;
+        interrupts();
+    #endif
+
 }
 
 /**
  * Inicjalizuj radio i piny.
  */
 void QAPRSBase::initializeRadio() {
-	//TODO: przepisać na STM32
-//	if (this->sensePin){
-//		pinMode(abs(this->sensePin), INPUT);
-//		digitalWrite(abs(this->sensePin), LOW);
-//	}
-//	pinMode(abs(this->txEnablePin), OUTPUT);
+    #if defined(__arm__)
+    //TODO: przepisać na STM32
+    #else
+        if (this->sensePin){
+            pinMode(abs(this->sensePin), INPUT);
+            digitalWrite(abs(this->sensePin), LOW);
+        }
+        pinMode(abs(this->txEnablePin), OUTPUT);
+    #endif
 
 	this->disableTranssmision();
 	this->initializeTimer1();
@@ -186,8 +209,17 @@ void QAPRSBase::initializeRadio() {
  * Włącz nadawanie. Metoda dodatkowo realizuje opóźnienie nadawania jesli ustawiono. @see QAPRSBase::setTxDelay
  */
 void QAPRSBase::enableTransmission() {
-	//TODO: przepisać na STM32
-	//digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? HIGH : LOW);
+    #if defined(__arm__)
+    //TODO: przepisać na STM32
+    #else
+        digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? HIGH : LOW);
+    #endif
+
+  radio_set_tx_frequency(APRS_FREQUENCY);
+  GPIO_SetBits(GPIOC, radioNSELpin);
+  radio_rw_register(0x71, 0b00010010, 1);
+  spi_deinit();
+  this->enabled = 1;
 	this->doTxDelay();
 }
 
@@ -195,8 +227,15 @@ void QAPRSBase::enableTransmission() {
  * Wyłącz nadawanie.
  */
 void QAPRSBase::disableTranssmision() {
-	//TODO: przepisać na STM32
-	//digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? LOW : HIGH);
+    #if defined(__arm__)
+    //TODO: przepisać na STM32
+    #else
+	    digitalWrite(abs(this->txEnablePin), (this->txEnablePin > 0) ? LOW : HIGH);
+    #endif
+  spi_init();
+  this->enabled = 0;
+  radio_set_tx_frequency(RTTY_FREQUENCY);
+  radio_rw_register(0x71, 0x00, 1);
 }
 
 /**
@@ -225,7 +264,7 @@ QAPRSReturnCode QAPRSBase::send(char * from_addr, uint8_t from_ssid, char * to_a
 	memset(bf->to, ' ', 6);
 	strncpy(bf->to, to_addr, 6);
 	bf->to_ssid = to_ssid;
-	bf->from_ssid = from_ssid > '@' ? from_ssid - 6 : from_ssid;;
+	bf->from_ssid = (uint8_t) (from_ssid > '@' ? from_ssid - 6 : from_ssid);;
 
 	strcpy(bf->packet_content, packet_content);
 
@@ -256,7 +295,7 @@ QAPRSReturnCode QAPRSBase::send(char* buffer, size_t length) {
 		if (this->canTransmit()){
 			this->ax25SendHeaderBegin();
 			while(length--){
-				this->ax25SendByte(*buffer);
+				this->ax25SendByte((uint8_t) *buffer);
 				buffer++;
 			}
 			this->ax25SendFooter();
@@ -264,8 +303,11 @@ QAPRSReturnCode QAPRSBase::send(char* buffer, size_t length) {
 		} else {
 			// jesli nie mozna to czekamy 100ms i sprawdzamy ponownie
 			// maks. czas oczekiwania to channelFreeWaitingMS
-			//TODO: przepisać na STM32
-			//delay(100);
+            #if defined(__arm__)
+                _delay_ms(100);
+            #else
+                delay(100);
+            #endif
 			timeout -= 100;
 		}
 	}
@@ -305,9 +347,9 @@ QAPRSReturnCode QAPRSBase::send(char* from_addr, uint8_t from_ssid, char* to_add
 	memset(bf->to, ' ', 6);
 	strncpy(bf->to, to_addr, 6);
 	bf->to_ssid = to_ssid;
-	bf->from_ssid = from_ssid > '@' ? from_ssid - 6 : from_ssid;
+	bf->from_ssid = (uint8_t) (from_ssid > '@' ? from_ssid - 6 : from_ssid);
 
-	uint8_t relay_size = strlen(relays);
+	uint8_t relay_size = (uint8_t) strlen(relays);
 	strcpy((char*)(tmpData+sizeof(ax25CustomFrameHeader)), relays);
 
 	uint8_t i;
@@ -359,6 +401,7 @@ void QAPRSBase::init(int8_t sensePin, int8_t txEnablePin) {
 	this->txEnablePin = txEnablePin;
 	this->txDelay = this->defaultTxDelay;
 	this->setVariant();
+  this->timer1StartValue = MarkTimerValue;
 
 	this->initializeRadio();
 }
@@ -409,7 +452,7 @@ void QAPRSBase::setToAddress(char* to_addr, uint8_t to_ssid) {
  * @param dst
  */
 void QAPRSBase::parseRelays(const char* relays, char* dst) {
-	uint8_t relays_len = strlen(relays);
+	uint8_t relays_len = (uint8_t) strlen(relays);
 	uint8_t relays_ptr = 0;
 	uint8_t dst_ptr = 0;
 	uint8_t fill_length = 0;
@@ -422,11 +465,11 @@ void QAPRSBase::parseRelays(const char* relays, char* dst) {
 			}
 			// koniec elementu
 			if (dst_ptr < 7){
-				fill_length = 7 - dst_ptr;
+				fill_length = (uint8_t) (7 - dst_ptr);
 			} else if (dst_ptr > 7 && dst_ptr < 7+7){
-				fill_length = 7+7 - dst_ptr;
+				fill_length = (uint8_t) (7 + 7 - dst_ptr);
 			} else if(dst_ptr > 7+7 && dst_ptr < 7+7+7){
-				fill_length = 7+7+7 - dst_ptr;
+				fill_length = (uint8_t) (7 + 7 + 7 - dst_ptr);
 			}
 			while(fill_length){
 				dst[dst_ptr] = ' ';
@@ -446,8 +489,11 @@ void QAPRSBase::parseRelays(const char* relays, char* dst) {
  */
 void QAPRSBase::doTxDelay() {
 	if (this->txDelay){
-		//TODO: przepisać na STM32
-		//delay(this->txDelay);
+        #if defined(__arm__)
+            _delay_ms(this->txDelay);
+        #else
+            delay(this->txDelay);
+        #endif
 	}
 }
 
@@ -479,11 +525,14 @@ void QAPRSBase::setRelays(char* relays) {
  * @param us
  */
 void QAPRSBase::delayuSeconds(uint16_t us) {
-	//TODO: przepisać na STM32
-	//unsigned long time = micros();
-//	while(micros() - time < us){
-//		//asm("nop");
-//	}
+    #if defined(__arm__)
+        _delay_us(us, 1);
+    #else
+        unsigned long time = micros();
+        while(micros() - time < us){
+            //asm("nop");
+        }
+    #endif
 }
 
 
@@ -495,14 +544,31 @@ void QAPRSBase::setTxDelay(uint16_t txDelay) {
 	this->txDelay = txDelay;
 }
 
+void QAPRSBase::timerInterruptHandler() {
+  this->togglePin();
+  TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));
+
+  TIM2->ARR = this->timer1StartValue;
+  TIM2->CNT = 0;
+
+  TIM2->CR1 |= TIM_CR1_CEN;
+}
+
+void QAPRSBase::togglePin() {
+  if (this->pin){
+    this->pin = 0;
+    GPIO_ResetBits(GPIOB, radioSDIpin);
+  } else {
+    this->pin = 1;
+    GPIO_SetBits(GPIOB, radioSDIpin);
+  }
+}
+
+#if defined(__arm__)
 //TODO: przepisać na STM32
-//ISR (TIMER1_OVF_vect)  // timer1 overflow interrupt
-//{
-//	QAPRSGlobalObject->timerInterruptHandler();
-//}
-
-
-
-
-
-
+#else
+ISR (TIMER1_OVF_vect)  // timer1 overflow interrupt
+{
+	QAPRSGlobalObject->timerInterruptHandler();
+}
+#endif

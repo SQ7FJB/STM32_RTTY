@@ -9,6 +9,8 @@
 #include <stm32f10x_spi.h>
 #include <misc.h>
 #include "init.h"
+#include "radio.h"
+
 SPI_InitTypeDef   SPI_InitStructure;
 USART_InitTypeDef USART_InitStructure;
 GPIO_InitTypeDef GPIO_Conf;
@@ -17,7 +19,9 @@ DMA_InitTypeDef DMA_InitStructure;
 
 
 #define ADC1_DR_Address    ((uint32_t)0x4001244C)
-
+#if defined(STM32F10X_CL)
+#error "Bedzie problem z kwarcem!"
+#endif
 void init_usart_gps(const uint32_t speed, const uint8_t enable_irq) {
   NVIC_DisableIRQ(USART1_IRQn);
 	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
@@ -76,10 +80,10 @@ void RCC_Conf()
 	  {
 			FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
 			FLASH_SetLatency(FLASH_Latency_2);
-			RCC_HCLKConfig(RCC_SYSCLK_Div4);
-			RCC_PCLK2Config(RCC_HCLK_Div4);
-			RCC_PCLK1Config(RCC_HCLK_Div2);
-			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE);
+			RCC_HCLKConfig(RCC_SYSCLK_Div4); // 25 / 4 -> 6.25
+			RCC_PCLK2Config(RCC_HCLK_Div4);  // 6.25 / 4
+			RCC_PCLK1Config(RCC_HCLK_Div2);  // 6.25 / 2
+			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE); // 25
 			while(RCC_GetSYSCLKSource() != 0x04);
   }
 }
@@ -97,33 +101,28 @@ void init_port()
   	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
   	GPIO_Init(GPIOB, &GPIO_Conf);
 
-  GPIO_Conf.GPIO_Pin = GPIO_Pin_13 |GPIO_Pin_15;
+	// SPI2_SCK & SPI2_MOSI
+    GPIO_Conf.GPIO_Pin = GPIO_Pin_13 | radioSDIpin;
  	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
  	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
  	GPIO_Init(GPIOB, &GPIO_Conf);
+
+	// SPI2_MISO
  	GPIO_Conf.GPIO_Pin = GPIO_Pin_14;
  	GPIO_Conf.GPIO_Mode = GPIO_Mode_IN_FLOATING;
  	GPIO_Init(GPIOB, &GPIO_Conf);
+
  	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
- 	GPIO_Conf.GPIO_Pin = GPIO_Pin_13;
+
+	// radioNSELpin
+ 	GPIO_Conf.GPIO_Pin = radioNSELpin;
  	GPIO_Conf.GPIO_Mode = GPIO_Mode_Out_PP;
  	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
  	GPIO_Init(GPIOC,&GPIO_Conf);
- 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
-    SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-    SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-    SPI_InitStructure.SPI_DataSize = SPI_DataSize_16b;
-   	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-   	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-   	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
-   	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-   	SPI_InitStructure.SPI_CRCPolynomial = 7;
-   	SPI_Init(SPI2, &SPI_InitStructure);
-   	SPI_SSOutputCmd(SPI2, ENABLE);
-   	SPI_Cmd(SPI2, ENABLE);
- 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
- 	SPI_Init(SPI2, &SPI_InitStructure);
-	GPIO_Conf.GPIO_Pin = GPIO_Pin_9;
+
+  spi_init();
+
+  GPIO_Conf.GPIO_Pin = GPIO_Pin_9;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_Init(GPIOA, &GPIO_Conf);
@@ -185,14 +184,45 @@ void init_port()
     ADC_SoftwareStartConvCmd(ADC1, ENABLE);	// start conversion (will be endless as we are in continuous mode)
 }
 
+void spi_init() {
+  GPIO_Conf.GPIO_Pin = radioSDIpin;
+  GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
+  GPIO_Init(GPIOB, &GPIO_Conf);
+
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+  SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+  SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+  SPI_InitStructure.SPI_DataSize = SPI_DataSize_16b;
+  SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+  SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+  SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+  SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+  SPI_InitStructure.SPI_CRCPolynomial = 7;
+  SPI_Init(SPI2, &SPI_InitStructure);
+  SPI_SSOutputCmd(SPI2, ENABLE);
+  SPI_Cmd(SPI2, ENABLE);
+  SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+  SPI_Init(SPI2, &SPI_InitStructure);
+}
+
+void spi_deinit() {
+  SPI_I2S_DeInit(SPI2);
+  GPIO_Conf.GPIO_Pin = radioSDIpin;
+  GPIO_Conf.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
+  GPIO_Init(GPIOB, &GPIO_Conf);
+
+}
+
 void init_timer(const int rtty_speed) {
   TIM_TimeBaseInitTypeDef TIM2_TimeBaseInitStruct;
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2,DISABLE);
 
-  TIM2_TimeBaseInitStruct.TIM_Prescaler = 600;
+  TIM2_TimeBaseInitStruct.TIM_Prescaler = 6/*0*/ - 1;// tick every 1/100000 s
   TIM2_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
-  TIM2_TimeBaseInitStruct.TIM_Period = (uint16_t) ((10000 / rtty_speed) - 1);
+  TIM2_TimeBaseInitStruct.TIM_Period = (uint16_t) ((1000000 / rtty_speed) - 1);
   TIM2_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
   TIM2_TimeBaseInitStruct.TIM_RepetitionCounter = 0;
 

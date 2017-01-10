@@ -58,7 +58,7 @@ private:
 	/**
 	 * @brief ilosć bajtów synchronizacyjnych do nadania przed zawartoscią pakietu
 	 */
-	static const uint8_t ax25HeaderFlagFieldCount1200 = 65;
+	static const uint8_t ax25HeaderFlagFieldCount1200 = 45;
 	/**
 	 * @brief ilosć bajtów synchronizacyjnych do nadania przed zawartoscią pakietu
 	 */
@@ -73,8 +73,8 @@ private:
 	 */
 	static const uint8_t ax25FlagFieldValue = 0x7E;
 	/**
-	 * @brief Czas wysyłania podedynczego tonu. W ms.
-	 * @details Czas calkowity powinien wynosic 833ms. Wartosć podana tutaj uwzględnia zwłokę związaną z wywoływaniem
+	 * @brief Czas wysyłania podedynczego tonu. W us.
+	 * @details Czas calkowity powinien wynosic 833us. Wartosć podana tutaj uwzględnia zwłokę związaną z wywoływaniem
 	 * funkcji itp.
 	 */
 #if F_CPU == 16000000L
@@ -82,7 +82,7 @@ private:
 #elif F_CPU == 8000000UL
 	static const uint16_t toneSendTime1200 = 785;
 #else
-	static const uint16_t toneSendTime1200 = 815;
+	static const uint16_t toneSendTime1200 = 766;
 #endif
 	/**
 	 * @brief Czas wysyłania podedynczego tonu. W ms.
@@ -98,7 +98,7 @@ private:
 	/**
 	 * @brief Domylslny czas pomiędzy włączeniem nadawania a rozpoczęciem generowania AFSK
 	 */
-	static const uint16_t defaultTxDelay = 300; // 300 ms
+	static const uint16_t defaultTxDelay = 50; // 300 ms
 	/**
 	 * @brief Pin Arduino na którym ustawiamy logiczną 1 w momencie nadawania
 	 */
@@ -132,7 +132,7 @@ private:
 	 */
 	char* relays[3*7];
 
-	virtual uint8_t canTransmit();
+	uint8_t canTransmit();
 	void ax25SendHeaderBegin();
 	void ax25SendByte(uint8_t byte);
 	void ax25SendFooter();
@@ -147,18 +147,17 @@ protected:
 	 * @brief Obecnie generowany ton
 	 */
 	QAPRSSendingTone currentTone;
-	uint16_t _toneSendTime;
 	/**
 	 * @brief Obecnie używany wariant
 	 */
 	QAPRSVariant variant;
 
-	virtual void initializeRadio();
-	virtual void enableTransmission();
-	virtual void disableTranssmision();
+	void initializeRadio();
+	void enableTransmission();
+	void disableTranssmision();
 
-	virtual void toggleTone();
-	virtual void initializeTimer1();
+	void toggleTone();
+	void initializeTimer1();
 	void delayuSeconds(uint16_t us);
 	void doTxDelay();
 public:
@@ -171,15 +170,26 @@ public:
 	QAPRSReturnCode sendData(char * buffer);
 	QAPRSReturnCode sendData(char * buffer, size_t length);
 
-	virtual void init(int8_t sensePin, int8_t txEnablePin);
-	virtual void init(int8_t sensePin, int8_t txEnablePin, char * from_addr, uint8_t from_ssid, char * to_addr, uint8_t to_ssid, char * relays);
+	void init(int8_t sensePin, int8_t txEnablePin);
+	void init(int8_t sensePin, int8_t txEnablePin, char * from_addr, uint8_t from_ssid, char * to_addr, uint8_t to_ssid, char * relays);
 
 	void setTxDelay(uint16_t txDelay);
-	virtual void timerInterruptHandler() {};
+	void timerInterruptHandler();
 	void setFromAddress(char * from_addr, uint8_t from_ssid);
 	void setToAddress(char * to_addr, uint8_t to_ssid);
 	void setRelays(char * relays);
-	virtual void setVariant(QAPRSVariant variant = QAPRSVHF);
+	void setVariant(QAPRSVariant variant = QAPRSVHF);
+
+private:
+  static const uint16_t toneSendTime = 833;
+  static const uint16_t MarkTimerValue = (uint16_t) ((1000000 /  ((1338)*2)) - 1);
+  static const uint16_t SpaceTimerValue = (uint16_t) ((1000000 /  ((-20+2670)*2)) - 1);
+  void togglePin();
+  uint8_t pin;
+public:
+  uint8_t enabled;
+  uint16_t timer1StartValue;
+	uint16_t _toneSendTime;
 };
 
 /**
