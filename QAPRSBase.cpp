@@ -236,6 +236,7 @@ void QAPRSBase::disableTranssmision() {
   this->enabled = 0;
   radio_set_tx_frequency(RTTY_FREQUENCY);
   radio_rw_register(0x71, 0x00, 1);
+  init_timer(RTTY_SPEED);
 }
 
 /**

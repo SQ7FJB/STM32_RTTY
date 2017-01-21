@@ -5,12 +5,14 @@
 #include "aprs.h"
 #include "QAPRSBase.h"
 #include "stdio.h"
+#include "ublox.h"
+#include "config.h"
 
 
 QAPRSBase qaprs;
 
 void aprs_init(){
-  qaprs.init(0, 0, (char *) "SQ5RWU", '7', (char *) "URQU70", '0', (char *) "WIDE1-1,WIDE2-1");
+  qaprs.init(0, 0, (const char *) APRS_CALLSIGN, (const uint8_t) APRS_SSID, (char *) "APZQAP", '0', (char *) "WIDE1-1,WIDE2-1");
 
 }
 
@@ -21,9 +23,42 @@ void aprs_timer_handler() {
 uint8_t aprs_is_active() {
   return qaprs.enabled;
 }
-void aprs_test(uint16_t x) {
+
+void calcDMH(long x, int8_t* degrees, uint8_t* minutes, uint8_t* h_minutes) {
+  uint8_t sign = (uint8_t) (x > 0 ? 1 : 0);
+  if (!sign) {
+    x = -(x);
+  }
+  *degrees = (int8_t) (x / 1000000);
+  x = x - (*degrees * 1000000);
+  x = (x) * 60 / 10000;
+  *minutes = (uint8_t) (x / 100);
+  *h_minutes = (uint8_t) (x - (*minutes * 100));
+  if (!sign) {
+    *degrees = -*degrees;
+  }
+}
+
+void aprs_send_position(GPSEntry gpsData) {
   char packet_buffer[128];
-  sprintf(packet_buffer, ":T %d", x);
+  int8_t la_degrees, lo_degrees;
+  uint8_t la_minutes, la_h_minutes, lo_minutes, lo_h_minutes;
+
+  calcDMH(gpsData.lat_raw, &la_degrees, &la_minutes, &la_h_minutes);
+  calcDMH(gpsData.lon_raw, &lo_degrees, &lo_minutes, &lo_h_minutes);
+
+  static uint16_t aprs_packet_counter = 0;
+  aprs_packet_counter ++;
+
+  sprintf(packet_buffer,
+          ("!%02d%02d.%02u%c/%03d%02u.%02u%cO/A=%06ld/%d,%d"),
+          abs(la_degrees), la_minutes, la_h_minutes,
+          la_degrees > 0 ? 'N' : 'S',
+          abs(lo_degrees), lo_minutes, lo_h_minutes,
+          lo_degrees > 0 ? 'E' : 'W',
+          (gpsData.alt_raw/1000) * 3280 / 1000,
+          aprs_packet_counter,
+          gpsData.sats_raw);
   qaprs.sendData(packet_buffer);
 }
 

@@ -48,6 +48,7 @@ rttyStates send_rtty_status = rttyZero;
 volatile char *rtty_buf;
 unsigned char cun_off = 0;
 
+void send_rtty_packet();
 
 /**
  * GPS data processing
@@ -121,7 +122,6 @@ int main(void) {
   delay_init();
   ublox_init();
 
-  int8_t temperatura;
 
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);
@@ -154,60 +154,63 @@ int main(void) {
   aprs_init();
   radio_enable_tx();
 
-  uint16_t x = 710;
-  while (1){
-    radio_enable_tx();
-    USART_Cmd(USART1, DISABLE);
-    x+=1;
-    //aprs_change_tone_time(x);
-    aprs_test(x);
-    USART_Cmd(USART1, ENABLE);
-
-    radio_disable_tx();
-    _delay_ms(1000);
-  }
-
+  uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
   while (1) {
     if (tx_on == 0 && tx_enable) {
-      start_bits = RTTY_PRE_START_BITS;
-      temperatura = radio_read_temperature();
-
-      napiecie = srednia(ADCVal[0] * 600 / 4096);
-      GPSEntry gpsData;
-      ublox_get_last_data(&gpsData);
-      if (gpsData.fix >= 3) {
-        flaga |= 0x80;
+      if (rtty_before_aprs_left){
+        send_rtty_packet();
+        rtty_before_aprs_left --;
       } else {
-        flaga &= ~0x80;
+        rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
+        radio_enable_tx();
+        GPSEntry gpsData;
+        ublox_get_last_data(&gpsData);
+        aprs_send_position(gpsData);
+        radio_disable_tx();
       }
-      uint8_t lat_d = (uint8_t) abs(gpsData.lat_raw / 10000000);
-      uint32_t lat_fl = (uint32_t) abs(abs(gpsData.lat_raw) - lat_d * 10000000) / 100;
-      uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
-      uint32_t lon_fl = (uint32_t) abs(abs(gpsData.lon_raw) - lon_d * 10000000) / 100;
 
-      sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d,%d,%d,%d,%02x", callsign, send_cun,
-              gpsData.hours, gpsData.minutes, gpsData.seconds,
-              gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
-              gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
-              (gpsData.alt_raw / 1000), temperatura, napiecie, gpsData.sats_raw,
-              gpsData.ok_packets, gpsData.bad_packets,
-              flaga);
-      CRC_rtty = 0xffff;                                              //napiecie      flaga
-      CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
-      sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
-      rtty_buf = buf_rtty;
-      radio_enable_tx();
-      tx_on = 1;
-
-      send_cun++;
     } else {
       NVIC_SystemLPConfig(NVIC_LP_SEVONPEND, DISABLE);
       __WFI();
     }
   }
 #pragma clang diagnostic pop
+}
+
+void send_rtty_packet() {
+  start_bits = RTTY_PRE_START_BITS;
+  int8_t temperatura = radio_read_temperature();
+
+  napiecie = srednia(ADCVal[0] * 600 / 4096);
+  GPSEntry gpsData;
+  ublox_get_last_data(&gpsData);
+  if (gpsData.fix >= 3) {
+        flaga |= 0x80;
+      } else {
+        flaga &= ~0x80;
+      }
+  uint8_t lat_d = (uint8_t) abs(gpsData.lat_raw / 10000000);
+  uint32_t lat_fl = (uint32_t) abs(abs(gpsData.lat_raw) - lat_d * 10000000) / 100;
+  uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
+  uint32_t lon_fl = (uint32_t) abs(abs(gpsData.lon_raw) - lon_d * 10000000) / 100;
+
+  sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d,%d,%d,%d,%02x", callsign, send_cun,
+              gpsData.hours, gpsData.minutes, gpsData.seconds,
+              gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
+              gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
+              (gpsData.alt_raw / 1000), temperatura, napiecie, gpsData.sats_raw,
+              gpsData.ok_packets, gpsData.bad_packets,
+              flaga);
+  CRC_rtty = 0xffff;                                              //napiecie      flaga
+  CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
+  sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
+  rtty_buf = buf_rtty;
+  radio_enable_tx();
+  tx_on = 1;
+
+  send_cun++;
 }
 
 #ifdef  DEBUG

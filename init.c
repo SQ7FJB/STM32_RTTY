@@ -81,8 +81,8 @@ void RCC_Conf()
 			FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
 			FLASH_SetLatency(FLASH_Latency_2);
 			RCC_HCLKConfig(RCC_SYSCLK_Div4); // 24 / 4 -> 6
-			RCC_PCLK2Config(RCC_HCLK_Div4);  // 6 / 4 = 1,5 -> APB2
-			RCC_PCLK1Config(RCC_HCLK_Div2);  // 6 / 2 = 3 -> APB1
+			RCC_PCLK2Config(RCC_HCLK_Div4);  // 6 / 4 = 1,5 -> APB2 -> TIMERS x 2
+			RCC_PCLK1Config(RCC_HCLK_Div2);  // 6 / 2 = 3 -> APB1 -> TIMERS x 2
 			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE); // 24
 			while(RCC_GetSYSCLKSource() != 0x04);
   }
