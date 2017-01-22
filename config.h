@@ -4,6 +4,11 @@
 
 #ifndef STM32_RTTY_CONFIG_H
 #define STM32_RTTY_CONFIG_H
+
+#ifdef USE_EXTERNAL_CONFIG
+#include "config_external.h"
+#else
+
 //**************config**************
 #define CALLSIGN "NO1LIC-1" // put your callsign here
 #define APRS_CALLSIGN "NO1LIC"
@@ -28,6 +33,6 @@
 #define ALLOW_DISABLE_BY_BUTTON 1
 //********** frame delay in msec**********
 #define tx_delay  5000
-
+#endif
 
 #endif //STM32_RTTY_CONFIG_H
