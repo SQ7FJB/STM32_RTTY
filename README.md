@@ -11,6 +11,7 @@ Have a nice day ;)
 
 # Configuration
 All configs in ```config.h```
+Shift 450Hz
 
 * ```CALLSIGN``` RTTY callsign
 * ```APRS_CALLSIGN``` APRS callsign
