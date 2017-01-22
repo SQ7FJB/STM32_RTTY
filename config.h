@@ -15,6 +15,7 @@
 #define APRS_FREQUENCY  432.500f //Mhz middle frequency
 //************rtty speed****************** si4032
 #define RTTY_SPEED  300
+// SHITY -> 450Hz
 //************rtty bits****************** si4032
 #define RTTY_7BIT   1
 //************rtty stop bits****************** si4032
@@ -23,7 +24,8 @@
 #define Smoc  7 // PWR 0...7 0- MIN ... 7 - MAX
 // 7 -> 42.95 mW@434.150 MHz na E4406A
 //***************************************************
-
+// WARNING: do not use this in flying tracker!
+#define ALLOW_DISABLE_BY_BUTTON 1
 //********** frame delay in msec**********
 #define tx_delay  5000
 

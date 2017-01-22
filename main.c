@@ -46,6 +46,7 @@ volatile unsigned int tx_on_delay;
 volatile unsigned char tx_enable = 0;
 rttyStates send_rtty_status = rttyZero;
 volatile char *rtty_buf;
+volatile uint16_t button_pressed = 0;
 unsigned char cun_off = 0;
 
 void send_rtty_packet();
@@ -104,6 +105,16 @@ void TIM2_IRQHandler(void) {
         }
         cun = 200;
       }
+      if (ALLOW_DISABLE_BY_BUTTON){
+        if (ADCVal[1] > 1900){
+          button_pressed++;
+          if (button_pressed > (10 * RTTY_SPEED)){
+            GPIO_SetBits(GPIOA, GPIO_Pin_12);
+          }
+        } else {
+          button_pressed = 0;
+        }
+      }
     }
 
   }
@@ -149,8 +160,7 @@ int main(void) {
   rtty_buf = buf_rtty;
   tx_on = 0;
   tx_enable = 1;
-  //tx_enable =0;
-  //Button = ADCVal[1];
+
   aprs_init();
   radio_enable_tx();
 
