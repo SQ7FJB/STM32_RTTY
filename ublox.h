@@ -205,5 +205,6 @@ void ublox_get_last_data(GPSEntry * gpsEntry);
 uBloxChecksum ublox_calc_checksum(const uint8_t msgClass, const uint8_t msgId, const uint8_t *message, uint16_t size);
 void ublox_handle_incoming_byte(uint8_t data);
 void ublox_handle_packet(uBloxPacket *pkt);
+uint8_t ublox_wait_for_ack();
 
 #endif //STM32_RTTY_UBLOX_H

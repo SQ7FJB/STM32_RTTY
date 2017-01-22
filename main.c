@@ -33,7 +33,7 @@ unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
 int napiecie;
 
-volatile char flaga = ((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
+volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
 char menu[] = "$$$$$$STM32 RTTY tracker by Blasiu, enjoy and see you on the HUB... \n\r";
@@ -140,7 +140,6 @@ int main(void) {
   init_timer(RTTY_SPEED);
   delay_init();
   ublox_init();
-
 
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);

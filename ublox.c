@@ -10,6 +10,9 @@
 
 GPSEntry currentGPSData;
 volatile uint8_t active = 0;
+volatile uint8_t ack_received = 0;
+volatile uint8_t nack_received = 0;
+
 void _sendSerialByte(uint8_t message) {
   while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
   }
@@ -71,6 +74,12 @@ void ublox_init(){
   uBloxPacket msgcfgrst = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x04, .payloadSize=sizeof(uBloxCFGRSTPayload)},
       .data.cfgrst = { .navBbrMask=0xffff, .resetMode=1, .reserved1 = 0}
   };
+  init_usart_gps(38400, 1);
+  _delay_ms(10);
+  send_ublox_packet(&msgcfgrst);
+  _delay_ms(800);
+  init_usart_gps(9600, 1);
+  _delay_ms(10);
   send_ublox_packet(&msgcfgrst);
   _delay_ms(800);
 
@@ -82,28 +91,36 @@ void ublox_init(){
 
   _delay_ms(10);
 
+  uBloxPacket msgcfgrxm = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x11, .payloadSize=sizeof(uBloxCFGRXMPayload)},
+      .data.cfgrxm = {.reserved1=8, .lpMode=4}};
+
+  do {
+    send_ublox_packet(&msgcfgrxm);
+  } while (!ublox_wait_for_ack());
+
   uBloxPacket msgcfgmsg = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x01, .payloadSize=sizeof(uBloxCFGMSGPayload)},
     .data.cfgmsg = {.msgClass=0x01, .msgID=0x02, .rate=1}};
-  send_ublox_packet(&msgcfgmsg);
-  _delay_ms(10);
-  uBloxPacket msgcfgrxm = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x11, .payloadSize=sizeof(uBloxCFGRXMPayload)},
-    .data.cfgrxm = {.reserved1=8, .lpMode=4}};
-  send_ublox_packet(&msgcfgrxm);
-  _delay_ms(10);
+
+  do {
+    send_ublox_packet(&msgcfgmsg);
+  } while (!ublox_wait_for_ack());
 
   msgcfgmsg.data.cfgmsg.msgID = 0x6;
-  send_ublox_packet(&msgcfgmsg);
-  _delay_ms(10);
+  do {
+    send_ublox_packet(&msgcfgmsg);
+  } while (!ublox_wait_for_ack());
 
   msgcfgmsg.data.cfgmsg.msgID = 0x21;
-  send_ublox_packet(&msgcfgmsg);
-  _delay_ms(10);
+  do {
+    send_ublox_packet(&msgcfgmsg);
+  } while (!ublox_wait_for_ack());
 
   uBloxPacket msgcfgnav5 = {.header = {0xb5, 0x62, .messageClass=0x06, .messageId=0x24, .payloadSize=sizeof(uBloxCFGNAV5Payload)},
-    .data.cfgnav5={.mask=0b00000001111111111, .dynModel=8, .fixMode=3, .fixedAlt=0, .fixedAltVar=10000, .minElev=15, .drLimit=0, .pDop=60, .tDop=60,
+    .data.cfgnav5={.mask=0b00000001111111111, .dynModel=7, .fixMode=2, .fixedAlt=0, .fixedAltVar=10000, .minElev=5, .drLimit=0, .pDop=25, .tDop=25,
                    .pAcc=100, .tAcc=300, .staticHoldThresh=0, .dgpsTimeOut=2, .reserved2=0, .reserved3=0, .reserved4=0}};
-  send_ublox_packet(&msgcfgnav5);
-  _delay_ms(10);
+  do {
+    send_ublox_packet(&msgcfgnav5);
+  } while (!ublox_wait_for_ack());
 }
 
 void ublox_handle_incoming_byte(uint8_t data){
@@ -144,8 +161,9 @@ void ublox_handle_packet(uBloxPacket *pkt) {
   if (cksum.ck_a != checksum->ck_a || cksum.ck_b != checksum->ck_b) {
     currentGPSData.bad_packets += 1;
   } else {
-    currentGPSData.ok_packets += 1;
+
     if (pkt->header.messageClass == 0x01 && pkt->header.messageId == 0x07){
+      currentGPSData.ok_packets += 1;
       currentGPSData.fix = pkt->data.navpvt.fixType;
       currentGPSData.lat_raw = pkt->data.navpvt.lat;
       currentGPSData.lon_raw = pkt->data.navpvt.lon;
@@ -157,6 +175,7 @@ void ublox_handle_packet(uBloxPacket *pkt) {
       currentGPSData.speed_raw = pkt->data.navpvt.gSpeed;
 
     } else if (pkt->header.messageClass == 0x01 && pkt->header.messageId == 0x02){
+      currentGPSData.ok_packets += 1;
       currentGPSData.lat_raw = pkt->data.navposllh.lat;
       currentGPSData.lon_raw = pkt->data.navposllh.lon;
       currentGPSData.alt_raw = pkt->data.navposllh.hMSL;
@@ -168,12 +187,25 @@ void ublox_handle_packet(uBloxPacket *pkt) {
       currentGPSData.minutes = pkt->data.navtimeutc.min;
       currentGPSData.seconds = pkt->data.navtimeutc.sec;
     } else if (pkt->header.messageClass == 0x05 && pkt->header.messageId == 0x01){
-      currentGPSData.fix += 1;
+      ack_received = 1;
     } else if (pkt->header.messageClass == 0x05 && pkt->header.messageId == 0x00){
-      currentGPSData.fix += 30;
+      nack_received = 1;
     }
   }
 
+}
+uint8_t ublox_wait_for_ack() {
+  ack_received = 0;
+  nack_received = 0;
+  uint8_t timeout = 200;
+  while(!ack_received && !nack_received){
+    _delay_ms(1);
+    if (!timeout--){
+      break;
+    }
+  }
+
+  return ack_received;
 }
 
 
