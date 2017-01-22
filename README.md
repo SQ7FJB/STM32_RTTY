@@ -23,3 +23,4 @@ All configs in ```config.h```
 * ```RTTY_USE_2_STOP_BITS``` use 2 stop bits
 * ```Smoc``` Power 0-7, where 7 means 42.95 mW@434.150 MHz measured on E4406A
 * ```tx_delay``` Delay between frames in milliseconds
+* ```ALLOW_DISABLE_BY_BUTTON``` Allow disabling device using button
