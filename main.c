@@ -47,6 +47,7 @@ volatile unsigned char tx_enable = 0;
 rttyStates send_rtty_status = rttyZero;
 volatile char *rtty_buf;
 volatile uint16_t button_pressed = 0;
+volatile uint8_t disable_armed = 0;
 unsigned char cun_off = 0;
 
 void send_rtty_packet();
@@ -73,20 +74,22 @@ void TIM2_IRQHandler(void) {
     } else {
       if (tx_on /*&& ++cun_rtty == 17*/) {
         send_rtty_status = send_rtty((char *) rtty_buf);
-        if (send_rtty_status == rttyEnd) {
-          GPIO_SetBits(GPIOB, RED);
-          if (*(++rtty_buf) == 0) {
-            tx_on = 0;
-            tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
-            tx_enable = 0;
-            radio_disable_tx();
+        if (!disable_armed){
+          if (send_rtty_status == rttyEnd) {
+            GPIO_SetBits(GPIOB, RED);
+            if (*(++rtty_buf) == 0) {
+              tx_on = 0;
+              tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
+              tx_enable = 0;
+              radio_disable_tx();
+            }
+          } else if (send_rtty_status == rttyOne) {
+            radio_rw_register(0x73, 0x02, 1);
+            GPIO_SetBits(GPIOB, RED);
+          } else if (send_rtty_status == rttyZero) {
+            radio_rw_register(0x73, 0x00, 1);
+            GPIO_ResetBits(GPIOB, RED);
           }
-        } else if (send_rtty_status == rttyOne) {
-          radio_rw_register(0x73, 0x02, 1);
-          GPIO_SetBits(GPIOB, RED);
-        } else if (send_rtty_status == rttyZero) {
-          radio_rw_register(0x73, 0x00, 1);
-          GPIO_ResetBits(GPIOB, RED);
         }
       }
       if (!tx_on && --tx_on_delay == 0) {
@@ -108,10 +111,15 @@ void TIM2_IRQHandler(void) {
       if (ALLOW_DISABLE_BY_BUTTON){
         if (ADCVal[1] > 1900){
           button_pressed++;
-          if (button_pressed > (10 * RTTY_SPEED)){
-            GPIO_SetBits(GPIOA, GPIO_Pin_12);
+          if (button_pressed > (5 * RTTY_SPEED)){
+            disable_armed = 1;
+            GPIO_SetBits(GPIOB, RED);
+            GPIO_SetBits(GPIOB, GREEN);
           }
         } else {
+          if (disable_armed){
+            GPIO_SetBits(GPIOA, GPIO_Pin_12);
+          }
           button_pressed = 0;
         }
       }
