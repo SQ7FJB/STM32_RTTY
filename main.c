@@ -167,7 +167,9 @@ int main(void) {
         radio_enable_tx();
         GPSEntry gpsData;
         ublox_get_last_data(&gpsData);
+        USART_Cmd(USART1, DISABLE);
         aprs_send_position(gpsData);
+        USART_Cmd(USART1, ENABLE);
         radio_disable_tx();
       }
 

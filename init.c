@@ -39,6 +39,13 @@ void init_usart_gps(const uint32_t speed, const uint8_t enable_irq) {
   USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
   USART_Init(USART1, &USART_InitStructure);
 
+  NVIC_InitTypeDef NVIC_InitStructure; //create NVIC structure
+  NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 15;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+
   USART_Cmd(USART1, ENABLE);
   if (enable_irq){
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);

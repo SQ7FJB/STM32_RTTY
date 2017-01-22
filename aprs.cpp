@@ -12,7 +12,7 @@
 QAPRSBase qaprs;
 
 void aprs_init(){
-  qaprs.init(0, 0, (const char *) APRS_CALLSIGN, (const uint8_t) APRS_SSID, (char *) "APZQAP", '0', (char *) "WIDE1-1,WIDE2-1");
+  qaprs.init(0, 0, (char *) APRS_CALLSIGN, (const uint8_t) APRS_SSID, (char *) "APZQAP", '0', (char *) "WIDE1-1,WIDE2-1");
 
 }
 
@@ -44,8 +44,8 @@ void aprs_send_position(GPSEntry gpsData) {
   int8_t la_degrees, lo_degrees;
   uint8_t la_minutes, la_h_minutes, lo_minutes, lo_h_minutes;
 
-  calcDMH(gpsData.lat_raw, &la_degrees, &la_minutes, &la_h_minutes);
-  calcDMH(gpsData.lon_raw, &lo_degrees, &lo_minutes, &lo_h_minutes);
+  calcDMH(gpsData.lat_raw/10, &la_degrees, &la_minutes, &la_h_minutes);
+  calcDMH(gpsData.lon_raw/10, &lo_degrees, &lo_minutes, &lo_h_minutes);
 
   static uint16_t aprs_packet_counter = 0;
   aprs_packet_counter ++;
