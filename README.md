@@ -9,6 +9,16 @@ https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-no
 
 Have a nice day ;)
 
+#Changelog
+ * 14.12.2016 - Reverse engineeded connections, initial hard work, resulting in working RTTY by SQ7FJB
+ * 07.01.2016 - GPS now using proprietiary UBLOX protocol, more elastic code to set working frequency by SQ5RWU
+ * 23.01.2016 - Test APRS code, small fixes in GPS code by SQ5RWU
+
+
+#TODO
+ * More APRS config options
+ * Temperature and moisture sensor?
+
 # Configuration
 All configs in ```config.h```
 Shift 450Hz
