@@ -185,7 +185,9 @@ int main(void) {
         GPSEntry gpsData;
         ublox_get_last_data(&gpsData);
         USART_Cmd(USART1, DISABLE);
-        aprs_send_position(gpsData);
+        int8_t temperature = radio_read_temperature();
+        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
+        aprs_send_position(gpsData, temperature, voltage);
         USART_Cmd(USART1, ENABLE);
         radio_disable_tx();
       }

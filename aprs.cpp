@@ -39,7 +39,7 @@ void calcDMH(long x, int8_t* degrees, uint8_t* minutes, uint8_t* h_minutes) {
   }
 }
 
-void aprs_send_position(GPSEntry gpsData) {
+void aprs_send_position(GPSEntry gpsData, int8_t temperature, uint16_t voltage) {
   char packet_buffer[128];
   int8_t la_degrees, lo_degrees;
   uint8_t la_minutes, la_h_minutes, lo_minutes, lo_h_minutes;
@@ -51,14 +51,17 @@ void aprs_send_position(GPSEntry gpsData) {
   aprs_packet_counter ++;
 
   sprintf(packet_buffer,
-          ("!%02d%02d.%02u%c/%03d%02u.%02u%cO/A=%06ld/%d,%d"),
+          ("!%02d%02d.%02u%c/%03d%02u.%02u%cO/A=%06ld/P%dS%dT%dV%d Hello from the sky!"),
           abs(la_degrees), la_minutes, la_h_minutes,
           la_degrees > 0 ? 'N' : 'S',
           abs(lo_degrees), lo_minutes, lo_h_minutes,
           lo_degrees > 0 ? 'E' : 'W',
           (gpsData.alt_raw/1000) * 3280 / 1000,
           aprs_packet_counter,
-          gpsData.sats_raw);
+          gpsData.sats_raw,
+          temperature,
+          voltage
+  );
   qaprs.sendData(packet_buffer);
 }
 
