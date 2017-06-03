@@ -8,7 +8,9 @@
 #include "ublox.h"
 #include "config.h"
 
-
+#if !defined(__OPTIMIZE__)
+#error "APRS Works only when optimization enabled at level at least -O2"
+#endif
 QAPRSBase qaprs;
 
 void aprs_init(){
