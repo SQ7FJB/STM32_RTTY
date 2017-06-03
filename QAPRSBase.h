@@ -58,7 +58,7 @@ private:
 	/**
 	 * @brief ilosć bajtów synchronizacyjnych do nadania przed zawartoscią pakietu
 	 */
-	static const uint8_t ax25HeaderFlagFieldCount1200 = 45;
+	static const uint8_t ax25HeaderFlagFieldCount1200 = 25;
 	/**
 	 * @brief ilosć bajtów synchronizacyjnych do nadania przed zawartoscią pakietu
 	 */
@@ -82,7 +82,7 @@ private:
 #elif F_CPU == 8000000UL
 	static const uint16_t toneSendTime1200 = 785;
 #else
-	static const uint16_t toneSendTime1200 = 717;
+	//static const uint16_t toneSendTime1200 = 1000000/1200;
 #endif
 	/**
 	 * @brief Czas wysyłania podedynczego tonu. W ms.
@@ -182,8 +182,10 @@ public:
 
 private:
   static const uint16_t toneSendTime = 833;
-  static const uint16_t MarkTimerValue = (uint16_t) ((1000000 /  ((1245)*2)) - 1);
-  static const uint16_t SpaceTimerValue = (uint16_t) ((1000000 /  ((2750)*2)) - 1);
+
+	static const uint16_t toneSendTime1200 = 795;
+  static const uint16_t MarkTimerValue = 393;
+  static const uint16_t SpaceTimerValue = 202;
   void togglePin();
   uint8_t pin;
 public:

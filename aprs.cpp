@@ -39,6 +39,14 @@ void calcDMH(long x, int8_t* degrees, uint8_t* minutes, uint8_t* h_minutes) {
   }
 }
 
+void aprs_test(){
+  char packet_buffer[128];
+  sprintf(packet_buffer,
+          (":TEST1234567890")
+  );
+  qaprs.sendData(packet_buffer);
+}
+
 void aprs_send_position(GPSEntry gpsData, int8_t temperature, uint16_t voltage) {
   char packet_buffer[128];
   int8_t la_degrees, lo_degrees;
