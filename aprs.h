@@ -17,6 +17,7 @@ extern "C" {
   uint8_t aprs_is_active();
   void aprs_send_position(GPSEntry gpsData, int8_t temperature, uint16_t voltage);
   void aprs_change_tone_time(uint16_t x);
+  void aprs_test();
 #ifdef __cplusplus
 };
 #endif

@@ -65,6 +65,7 @@ uint8_t QAPRSBase::canTransmit(){
  */
 void QAPRSBase::ax25SendHeaderBegin() {
 	this->enableTransmission();
+	timerInterruptHandler();
 	this->ax25CRC = 0xFFFF;
 	this->currentTone = QAPRSMark;
 	//this->currentTone = QAPRSSpace;
@@ -155,20 +156,7 @@ void QAPRSBase::ax25CalcCRC(uint8_t ls_bit) {
  */
 inline void QAPRSBase::toggleTone() {
 	this->currentTone = (this->currentTone == QAPRSSpace) ? QAPRSMark : QAPRSSpace;
-
-  TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));
-
-  uint16_t used = TIM2->CNT;
   this->timer1StartValue = (this->currentTone == QAPRSMark) ? MarkTimerValue : SpaceTimerValue;
-
-  if (used >= this->timer1StartValue){
-    this->timerInterruptHandler();
-  } else {
-    TIM2->ARR = this->timer1StartValue - used;
-    TIM2->CNT = 0;
-  }
-
-  TIM2->CR1 |= TIM_CR1_CEN;
 }
 
 /**
@@ -216,6 +204,7 @@ void QAPRSBase::enableTransmission() {
     #endif
 
   radio_set_tx_frequency(APRS_FREQUENCY);
+  radio_rw_register(0x72, 5, 1);
   GPIO_SetBits(GPIOC, radioNSELpin);
   radio_rw_register(0x71, 0b00010010, 1);
   spi_deinit();
