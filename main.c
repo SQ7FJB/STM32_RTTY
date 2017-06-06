@@ -36,6 +36,7 @@ int napiecie;
 volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
+
 volatile unsigned char pun = 0;
 volatile unsigned int cun = 10;
 volatile unsigned char tx_on = 0;
@@ -75,7 +76,7 @@ void TIM2_IRQHandler(void) {
             GPIO_SetBits(GPIOB, RED);
             if (*(++rtty_buf) == 0) {
               tx_on = 0;
-              tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
+              tx_on_delay = tx_delay / (1000/RTTY_SPEED);
               tx_enable = 0;
               radio_disable_tx();
             }
@@ -168,6 +169,7 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
+
   while (1) {
     if (tx_on == 0 && tx_enable) {
       if (rtty_before_aprs_left){
