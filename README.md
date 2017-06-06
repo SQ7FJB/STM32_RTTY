@@ -13,6 +13,7 @@ Have a nice day ;)
  * 14.12.2016 - Reverse engineeded connections, initial hard work, resulting in working RTTY by SQ7FJB
  * 07.01.2017 - GPS now using proprietiary UBLOX protocol, more elastic code to set working frequency by SQ5RWU
  * 23.01.2017 - Test APRS code, small fixes in GPS code by SQ5RWU
+ * 06.06.2017 - APRS code fix, some code cleanup
 
 
 #TODO
@@ -25,6 +26,7 @@ Shift 450Hz
 
 * ```CALLSIGN``` RTTY callsign
 * ```APRS_CALLSIGN``` APRS callsign
+* ```APRS_COMMENT``` APRS comment
 * ```APRS_SSID``` APRS SSID - '1' -> 1, 'A' -> 10 etc.
 * ```RTTY_TO_APRS_RATIO``` number of RTTY frames between each APRS frame
 * ```RTTY_FREQUENCY``` RTTY frequency in MHz

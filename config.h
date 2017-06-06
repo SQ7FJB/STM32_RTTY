@@ -14,6 +14,7 @@
 #define APRS_CALLSIGN "DF8OE-10"
 #define RTTY_GREETING "$$$$$$RS41 modified for amateur radio use by DF8OE, enjoy and see you on the HUB... \n\r"
 #define APRS_SSID 'B'
+#define APRS_COMMENT " Hello from the sky!"
 #define RTTY_TO_APRS_RATIO 5
 
 //*************frequency********************
