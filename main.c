@@ -167,7 +167,6 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
-
   while (1) {
     if (tx_on == 0 && tx_enable) {
       if (rtty_before_aprs_left){
