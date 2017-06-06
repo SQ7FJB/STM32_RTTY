@@ -36,11 +36,8 @@ int napiecie;
 volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
-char menu[] = "$$$$$$STM32 RTTY tracker by Blasiu, enjoy and see you on the HUB... \n\r";
-char init_trx[] = "\n\rPowering up TX\n\r";
 volatile unsigned char pun = 0;
 volatile unsigned int cun = 10;
-unsigned char dev = 0;
 volatile unsigned char tx_on = 0;
 volatile unsigned int tx_on_delay;
 volatile unsigned char tx_enable = 0;
@@ -48,8 +45,6 @@ rttyStates send_rtty_status = rttyZero;
 volatile char *rtty_buf;
 volatile uint16_t button_pressed = 0;
 volatile uint8_t disable_armed = 0;
-unsigned char cun_off = 0;
-
 void send_rtty_packet();
 
 /**
@@ -79,7 +74,7 @@ void TIM2_IRQHandler(void) {
             GPIO_SetBits(GPIOB, RED);
             if (*(++rtty_buf) == 0) {
               tx_on = 0;
-              tx_on_delay = tx_delay / (1000/RTTY_SPEED);//2500;
+              tx_on_delay = tx_delay / (1000/RTTY_SPEED);
               tx_enable = 0;
               radio_disable_tx();
             }
