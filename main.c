@@ -36,11 +36,8 @@ int napiecie;
 volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
-char menu[] = RTTY_GREETING;
-char init_trx[] = "\n\rPowering up TX\n\r";
 volatile unsigned char pun = 0;
 volatile unsigned int cun = 10;
-unsigned char dev = 0;
 volatile unsigned char tx_on = 0;
 volatile unsigned int tx_on_delay;
 volatile unsigned char tx_enable = 0;
@@ -48,7 +45,6 @@ rttyStates send_rtty_status = rttyZero;
 volatile char *rtty_buf;
 volatile uint16_t button_pressed = 0;
 volatile uint8_t disable_armed = 0;
-unsigned char cun_off = 0;
 
 void send_rtty_packet();
 
@@ -172,8 +168,6 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
-//#pragma clang diagnostic push
-//#pragma clang diagnostic ignored "-Wmissing-noreturn"
   while (1) {
     if (tx_on == 0 && tx_enable) {
       if (rtty_before_aprs_left){
@@ -197,7 +191,6 @@ int main(void) {
       __WFI();
     }
   }
-//#pragma clang diagnostic pop
 }
 
 void send_rtty_packet() {

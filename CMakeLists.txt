@@ -5,21 +5,22 @@ SET(CMAKE_SYSTEM_VERSION 1)
 
 
 if(UNIX)
-  set(TOOLCHAIN_DIR /opt/gcc-arm-none-eabi-5_4-2016q3/bin/)
+  set(TOOLCHAIN_DIR "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/")
   CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc GNU)
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++ GNU)
 else()
-  set(TOOLCHAIN_DIR D:/Programy/arm_gcc/bin/)
+  set(TOOLCHAIN_DIR "D:/Programy/arm_gcc/bin/")
   CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc.exe GNU)
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
 endif()
 
-project(STM32_RTTY C ASM CXX)
+project(STM32_RTTY C CXX ASM)
 
 
 add_definitions(-DSTM32F100C8)
 add_definitions(-DSTM32F10X_MD_VL)
 add_definitions(-DUSE_STDPERIPH_DRIVER)
+add_definitions(-DSUPPORT_CPLUSPLUS)
 add_definitions(-D__ASSEMBLY__)
 
 
@@ -28,7 +29,7 @@ SET(LINKER_SCRIPT ${PROJECT_SOURCE_DIR}/arm-gcc-link.ld)
 SET(COMMON_FLAGS " -mcpu=cortex-m3 -mthumb -Wall -ffunction-sections -g -O3  -g -nostartfiles ")
 SET(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -std=c++11")
 SET(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
-SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map  -O3 -Wl,--gc-sections  -T ${LINKER_SCRIPT}")
+SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map -lstdc++ -O3 -Wl,--gc-sections --specs=nano.specs -T ${LINKER_SCRIPT}")
 
 file(GLOB_RECURSE USER_SOURCES "*.c")
 file(GLOB_RECURSE USER_SOURCES_CXX "*.cpp")
@@ -53,7 +54,9 @@ set(BIN_FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.bin)
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
         COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
-        COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
+        COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}"
+        COMMAND ${TOOLCHAIN_DIR}/arm-none-eabi-size ${PROJECT_NAME}.elf)
+
 set(CMAKE_CXX_STANDARD 11)
 
 add_custom_target(program
