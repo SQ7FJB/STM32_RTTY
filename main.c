@@ -172,8 +172,8 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
+//#pragma clang diagnostic push
+//#pragma clang diagnostic ignored "-Wmissing-noreturn"
   while (1) {
     if (tx_on == 0 && tx_enable) {
       if (rtty_before_aprs_left){
@@ -197,7 +197,7 @@ int main(void) {
       __WFI();
     }
   }
-#pragma clang diagnostic pop
+//#pragma clang diagnostic pop
 }
 
 void send_rtty_packet() {
