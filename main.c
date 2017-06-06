@@ -36,7 +36,7 @@ int napiecie;
 volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
-char menu[] = "$$$$$$STM32 RTTY tracker by Blasiu, enjoy and see you on the HUB... \n\r";
+char menu[] = RTTY_GREETING;
 char init_trx[] = "\n\rPowering up TX\n\r";
 volatile unsigned char pun = 0;
 volatile unsigned int cun = 10;
