@@ -14,7 +14,6 @@
 #include <string.h>
 #include <misc.h>
 #include "f_rtty.h"
-#include "fun.h"
 #include "init.h"
 #include "config.h"
 #include "radio.h"
@@ -31,11 +30,12 @@ char callsign[15] = {CALLSIGN};
 
 unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
-int napiecie;
+int voltage;
 
-volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
+volatile char flaga = 0;
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
+
 volatile unsigned char pun = 0;
 volatile unsigned int cun = 10;
 volatile unsigned char tx_on = 0;
@@ -45,7 +45,11 @@ rttyStates send_rtty_status = rttyZero;
 volatile char *rtty_buf;
 volatile uint16_t button_pressed = 0;
 volatile uint8_t disable_armed = 0;
+
 void send_rtty_packet();
+uint16_t gps_CRC16_checksum (char *string);
+// int srednia (int dana);
+
 
 /**
  * GPS data processing
@@ -53,7 +57,7 @@ void send_rtty_packet();
 void USART1_IRQHandler(void) {
   if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
     ublox_handle_incoming_byte((uint8_t) USART_ReceiveData(USART1));
-  }else if (USART_GetITStatus(USART1, USART_IT_ORE) != RESET) {
+      }else if (USART_GetITStatus(USART1, USART_IT_ORE) != RESET) {
     USART_ReceiveData(USART1);
   } else {
     USART_ReceiveData(USART1);
@@ -67,7 +71,7 @@ void TIM2_IRQHandler(void) {
     if (aprs_is_active()){
       aprs_timer_handler();
     } else {
-      if (tx_on /*&& ++cun_rtty == 17*/) {
+      if (tx_on) {
         send_rtty_status = send_rtty((char *) rtty_buf);
         if (!disable_armed){
           if (send_rtty_status == rttyEnd) {
@@ -143,11 +147,11 @@ int main(void) {
   radio_rw_register(0x03, 0xff, 0);
   radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
-  // programowanie czestotliwosci nadawania
+  // setting TX frequency
   radio_set_tx_frequency(RTTY_FREQUENCY);
 
-  // Programowanie mocy nadajnika
-  radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
+  // setting TX power
+  radio_rw_register(0x6D, 00 | (TX_POWER & 0x0007), 1);
 
   radio_rw_register(0x71, 0x00, 1);
   radio_rw_register(0x87, 0x08, 0);
@@ -167,6 +171,7 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
+
   while (1) {
     if (tx_on == 0 && tx_enable) {
       if (rtty_before_aprs_left){
@@ -179,7 +184,8 @@ int main(void) {
         ublox_get_last_data(&gpsData);
         USART_Cmd(USART1, DISABLE);
         int8_t temperature = radio_read_temperature();
-        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
+//        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
+        uint16_t voltage = (uint16_t) ADCVal[0] * 600 / 4096;
         aprs_send_position(gpsData, temperature, voltage);
         USART_Cmd(USART1, ENABLE);
         radio_disable_tx();
@@ -196,14 +202,15 @@ void send_rtty_packet() {
   start_bits = RTTY_PRE_START_BITS;
   int8_t si4032_temperature = radio_read_temperature();
 
-  napiecie = srednia(ADCVal[0] * 600 / 4096);
+//  voltage = srednia(ADCVal[0] * 600 / 4096);
+  voltage = ADCVal[0] * 600 / 4096;
   GPSEntry gpsData;
   ublox_get_last_data(&gpsData);
   if (gpsData.fix >= 3) {
         flaga |= 0x80;
       } else {
         flaga &= ~0x80;
-  }
+      }
   uint8_t lat_d = (uint8_t) abs(gpsData.lat_raw / 10000000);
   uint32_t lat_fl = (uint32_t) abs(abs(gpsData.lat_raw) - lat_d * 10000000) / 100;
   uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
@@ -216,7 +223,7 @@ void send_rtty_packet() {
               (gpsData.alt_raw / 1000), si4032_temperature, voltage, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
-  CRC_rtty = 0xffff;                                              // maybe not neccessary??
+  CRC_rtty = 0xffff;                 //possibly not neccessary??
   CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
   sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
   rtty_buf = buf_rtty;
