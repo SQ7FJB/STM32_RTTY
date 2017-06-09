@@ -30,7 +30,7 @@ char callsign[15] = {CALLSIGN};
 
 unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
-int napiecie;
+int voltage;
 
 volatile char flaga = 0;
 uint16_t CRC_rtty = 0x12ab;  //checksum
@@ -48,7 +48,7 @@ volatile uint8_t disable_armed = 0;
 
 void send_rtty_packet();
 uint16_t gps_CRC16_checksum (char *string);
-int srednia (int dana);
+// int srednia (int dana);
 
 
 /**
@@ -184,7 +184,8 @@ int main(void) {
         ublox_get_last_data(&gpsData);
         USART_Cmd(USART1, DISABLE);
         int8_t temperature = radio_read_temperature();
-        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
+//        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
+        uint16_t voltage = (uint16_t) ADCVal[0] * 600 / 4096;
         aprs_send_position(gpsData, temperature, voltage);
         USART_Cmd(USART1, ENABLE);
         radio_disable_tx();
@@ -201,7 +202,8 @@ void send_rtty_packet() {
   start_bits = RTTY_PRE_START_BITS;
   int8_t temperatura = radio_read_temperature();
 
-  napiecie = srednia(ADCVal[0] * 600 / 4096);
+//  voltage = srednia(ADCVal[0] * 600 / 4096);
+  voltage = ADCVal[0] * 600 / 4096;
   GPSEntry gpsData;
   ublox_get_last_data(&gpsData);
   if (gpsData.fix >= 3) {
@@ -218,10 +220,10 @@ void send_rtty_packet() {
               gpsData.hours, gpsData.minutes, gpsData.seconds,
               gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
               gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
-              (gpsData.alt_raw / 1000), temperatura, napiecie, gpsData.sats_raw,
+              (gpsData.alt_raw / 1000), temperatura, voltage, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
-  CRC_rtty = 0xffff;                 //napiecie flaga possibly not neccessary??
+  CRC_rtty = 0xffff;                 //possibly not neccessary??
   CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
   sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
   rtty_buf = buf_rtty;
@@ -245,7 +247,7 @@ uint16_t gps_CRC16_checksum(char *string) {
   }
   return crc;
 }
-
+/*
 int srednia(int dana) {
   static uint8_t nr_pom = 0;
   static uint8_t first = 1;
@@ -268,7 +270,7 @@ int srednia(int dana) {
   sr = sr / 5;
   return sr;
 }
-
+*/
 #ifdef  DEBUG
 void assert_failed(uint8_t* file, uint32_t line)
 {
