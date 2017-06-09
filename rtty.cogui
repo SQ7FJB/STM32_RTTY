@@ -30,14 +30,6 @@
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/rtty/f_rtty.c"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="365" selectionTopPixel="212"/>
 </editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="fun.c" partName="fun.c" path="C:/Users/rysiek/Desktop/rtty_v1.4/fun.c" title="fun.c" tooltip="C:/Users/rysiek/Desktop/rtty_v1.4/fun.c" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/rtty/fun.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3269" selectionTopPixel="2235"/>
-</editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="fun.h" partName="fun.h" path="C:/Users/rysiek/Desktop/rtty_v1.4/fun.h" title="fun.h" tooltip="C:/Users/rysiek/Desktop/rtty_v1.4/fun.h" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/rtty/fun.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="339" selectionTopPixel="0"/>
-</editor>
 <editor id="org.coocox.builder.ui.editors.repository.RepositoryBrowser" name="Repository" partName="Repository" title="Repository" tooltip="Repository" workbook="DefaultEditorWorkbook">
 <input factoryID="org.coocox.component.ui.editors.repository.RepositoryElementFactory">&#x0A;<subPage horizontalPosition="0" selectedItemId="0" subPageIndex="0" verticalPosition="0"/>
 </input>
@@ -314,14 +306,11 @@
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/init.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/init.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/f_rtty.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/fun.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/fun.h"/>
 <editor factoryID="org.coocox.component.ui.editors.repository.RepositoryElementFactory" id="org.coocox.builder.ui.editors.repository.RepositoryBrowser">
 <subPage horizontalPosition="0" selectedItemId="0" subPageIndex="0" verticalPosition="0"/>
 </editor>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/init.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/f_rtty.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/fun.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/init.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/stm_lib/src/stm32f10x_adc.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/rtty/init.h"/>
@@ -431,12 +420,6 @@
 <item historyLabel="f_rtty.c" index="4">
 <position info="not_deleted" x="0" y="0"/>
 </item>
-<item historyLabel="fun.c" index="5">
-<position info="not_deleted" x="1034" y="0"/>
-</item>
-<item historyLabel="fun.h" index="6">
-<position info="not_deleted" x="339" y="0"/>
-</item>
 <item historyLabel="Repository" index="7"/>
 <item historyLabel="init.c" index="8">
 <position info="not_deleted" x="6655" y="15"/>
@@ -446,9 +429,6 @@
 </item>
 <item historyLabel="f_rtty.c" index="9">
 <position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="fun.c" index="10">
-<position info="not_deleted" x="1022" y="0"/>
 </item>
 <item historyLabel="init.c" index="11">
 <position info="not_deleted" x="4763" y="15"/>
@@ -514,9 +494,6 @@
 <file factoryID="org.coocox.component.ui.editors.repository.RepositoryElementFactory" id="org.coocox.builder.ui.editors.repository.RepositoryBrowser" name="Repository" tooltip="Repository">
 <persistable>&#x0A;<subPage/>
 </persistable>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="fun.h" tooltip="rtty/fun.h">
-<persistable path="/rtty/fun.h"/>
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="startup_stm32f10x_md_vl.c" tooltip="rtty/cmsis_boot/startup/startup_stm32f10x_md_vl.c">
 <persistable path="/rtty/cmsis_boot/startup/startup_stm32f10x_md_vl.c"/>
