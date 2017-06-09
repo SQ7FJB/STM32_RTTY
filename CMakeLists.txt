@@ -14,16 +14,13 @@ else()
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
 endif()
 
-project(STM32_RTTY C CXX ASM)
-
+project(STM32_RTTY C ASM CXX)
 
 add_definitions(-DSTM32F100C8)
 add_definitions(-DSTM32F10X_MD_VL)
 add_definitions(-DUSE_STDPERIPH_DRIVER)
 add_definitions(-DSUPPORT_CPLUSPLUS)
 add_definitions(-D__ASSEMBLY__)
-
-
 
 SET(LINKER_SCRIPT ${PROJECT_SOURCE_DIR}/arm-gcc-link.ld)
 SET(COMMON_FLAGS " -mcpu=cortex-m3 -mthumb -Wall -ffunction-sections -g -O3 -g -nostartfiles ")
