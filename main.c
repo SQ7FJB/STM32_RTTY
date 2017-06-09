@@ -14,7 +14,6 @@
 #include <string.h>
 #include <misc.h>
 #include "f_rtty.h"
-#include "fun.h"
 #include "init.h"
 #include "config.h"
 #include "radio.h"
@@ -33,7 +32,7 @@ unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
 int napiecie;
 
-volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | TX_POWER);
+volatile char flaga = 0;
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
 
@@ -48,6 +47,9 @@ volatile uint16_t button_pressed = 0;
 volatile uint8_t disable_armed = 0;
 
 void send_rtty_packet();
+uint16_t gps_CRC16_checksum (char *string);
+int srednia (int dana);
+
 
 /**
  * GPS data processing
@@ -55,7 +57,7 @@ void send_rtty_packet();
 void USART1_IRQHandler(void) {
   if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
     ublox_handle_incoming_byte((uint8_t) USART_ReceiveData(USART1));
-  }else if (USART_GetITStatus(USART1, USART_IT_ORE) != RESET) {
+      }else if (USART_GetITStatus(USART1, USART_IT_ORE) != RESET) {
     USART_ReceiveData(USART1);
   } else {
     USART_ReceiveData(USART1);
@@ -69,7 +71,7 @@ void TIM2_IRQHandler(void) {
     if (aprs_is_active()){
       aprs_timer_handler();
     } else {
-      if (tx_on /*&& ++cun_rtty == 17*/) {
+      if (tx_on) {
         send_rtty_status = send_rtty((char *) rtty_buf);
         if (!disable_armed){
           if (send_rtty_status == rttyEnd) {
@@ -145,10 +147,10 @@ int main(void) {
   radio_rw_register(0x03, 0xff, 0);
   radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
-  // programowanie czestotliwosci nadawania
+  // setting TX frequency
   radio_set_tx_frequency(RTTY_FREQUENCY);
 
-  // Programowanie mocy nadajnika
+  // setting TX power
   radio_rw_register(0x6D, 00 | (TX_POWER & 0x0007), 1);
 
   radio_rw_register(0x71, 0x00, 1);
@@ -219,7 +221,7 @@ void send_rtty_packet() {
               (gpsData.alt_raw / 1000), temperatura, napiecie, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
-  CRC_rtty = 0xffff;                                              //napiecie      flaga
+  CRC_rtty = 0xffff;                 //napiecie flaga possibly not neccessary??
   CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
   sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
   rtty_buf = buf_rtty;
@@ -227,6 +229,44 @@ void send_rtty_packet() {
   tx_on = 1;
 
   send_cun++;
+}
+
+uint16_t gps_CRC16_checksum(char *string) {
+  uint16_t crc = 0xffff;
+  char i;
+  while (*(string) != 0) {
+    crc = crc ^ (*(string++) << 8);
+    for (i = 0; i < 8; i++) {
+      if (crc & 0x8000)
+        crc = (uint16_t) ((crc << 1) ^ 0x1021);
+      else
+        crc <<= 1;
+    }
+  }
+  return crc;
+}
+
+int srednia(int dana) {
+  static uint8_t nr_pom = 0;
+  static uint8_t first = 1;
+  int srednia_u[5] = {0, 0, 0, 0, 0};
+  uint8_t i;
+  int sr = 0;
+  if (first) {
+    for (i = 0; i < 5; i++) {
+      srednia_u[i] = dana;
+    }
+    first = 0;
+  }
+  srednia_u[nr_pom] = dana;
+  if (++nr_pom > 4) {
+    nr_pom = 0;
+  }
+  for (i = 0; i < 5; i++) {
+    sr += srednia_u[i];
+  }
+  sr = sr / 5;
+  return sr;
 }
 
 #ifdef  DEBUG

@@ -57,7 +57,7 @@ void init_usart_debug() {
   NVIC_DisableIRQ(USART3_IRQn);
   USART_Cmd(USART3, DISABLE);
 
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);// | RCC_APB2Periph_AFIO, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
   USART_InitStructure.USART_BaudRate = 19200; //0x9c4;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -87,10 +87,10 @@ void RCC_Conf()
 	  {
 			FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
 			FLASH_SetLatency(FLASH_Latency_2);
-			RCC_HCLKConfig(RCC_SYSCLK_Div4); // 24 / 4 -> 6
-			RCC_PCLK2Config(RCC_HCLK_Div4);  // 6 / 4 = 1,5 -> APB2 -> TIMERS x 2
-			RCC_PCLK1Config(RCC_HCLK_Div2);  // 6 / 2 = 3 -> APB1 -> TIMERS x 2
-			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE); // 24
+			RCC_HCLKConfig(RCC_SYSCLK_Div4);
+			RCC_PCLK2Config(RCC_HCLK_Div4);
+			RCC_PCLK1Config(RCC_HCLK_Div2);
+			RCC_SYSCLKConfig(RCC_SYSCLKSource_HSE);
 			while(RCC_GetSYSCLKSource() != 0x04);
   }
 }
@@ -103,7 +103,7 @@ void init_port()
 	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_Init(GPIOA, &GPIO_Conf);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-  	GPIO_Conf.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 ;//| GPIO_Pin_10;
+  	GPIO_Conf.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8;
   	GPIO_Conf.GPIO_Mode = GPIO_Mode_Out_PP;
   	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
   	GPIO_Init(GPIOB, &GPIO_Conf);
@@ -129,7 +129,7 @@ void init_port()
 
   spi_init();
 
-  GPIO_Conf.GPIO_Pin = GPIO_Pin_9;
+	GPIO_Conf.GPIO_Pin = GPIO_Pin_9;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_Init(GPIOA, &GPIO_Conf);
@@ -139,7 +139,7 @@ void init_port()
 
   init_usart_gps(9600, 0);
 
-  GPIO_Conf.GPIO_Pin = GPIO_Pin_10;
+	GPIO_Conf.GPIO_Pin = GPIO_Pin_10;
 	GPIO_Conf.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Conf.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_Init(GPIOB, &GPIO_Conf);
@@ -149,7 +149,7 @@ void init_port()
 
   init_usart_debug();
 
-  RCC_AHBPeriphClockCmd ( RCC_AHBPeriph_DMA1 , ENABLE ) ;
+	RCC_AHBPeriphClockCmd ( RCC_AHBPeriph_DMA1 , ENABLE ) ;
 	DMA_DeInit(DMA1_Channel1);
 	DMA_InitStructure.DMA_BufferSize = 2;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;

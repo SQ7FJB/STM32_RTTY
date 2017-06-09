@@ -24,7 +24,7 @@ void radio_set_tx_frequency(const float freq_in_mhz) {
   uint8_t hbsel = (uint8_t) ((freq_in_mhz * (30.0f / SI4032_CLOCK)) >= 480.0f ? 1 : 0);
 
   uint8_t fb = (uint8_t) ((((uint8_t)((freq_in_mhz * (30.0f / SI4032_CLOCK)) / 10) - 24) - (24 * hbsel)) / (1 + hbsel));
-  uint8_t gen_div  =  3;  //Stała nie zmieniac
+  uint8_t gen_div  =  3;  // constant - not possible to change!
   uint16_t fc = (uint16_t) (((freq_in_mhz / ((SI4032_CLOCK / gen_div) * (hbsel + 1))) - fb - 24) * 64000);
 
   radio_rw_register(0x72, 10, 1);
@@ -48,7 +48,7 @@ void radio_enable_tx() {
 
 int8_t radio_read_temperature() {
   uint8_t temp;
-  temp = radio_rw_register(0x11, 0xff, 0); //odczyt ADC
+  temp = radio_rw_register(0x11, 0xff, 0); // read ADC
   int8_t temperatura = (int8_t) (-64 + (temp * 5 / 10) - 16);
   radio_rw_register(0x0f, 0x80, 1);
   return temperatura;
