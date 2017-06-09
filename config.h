@@ -23,12 +23,12 @@
 // 7 --> walkie talkies, HT's or other human portable
 // 8 --> boats, sailboats, RV's or second main mobile
 // 9 --> Primary Mobile (usually message capable)
-// 10 --> internet, Igates, echolink, winlink, AVRS, APRN, etc.
-// 11 --> balloons, aircraft, spacecraft, etc.
-// 12 --> APRStt, DTMF, RFID, devices, one-way trackers*, etc.
-// 13 --> Weather stations
-// 14 --> Truckers or generally full time drivers
-// 15 --> generic additional station, digi, mobile, wx, etc.
+// A --> internet, Igates, echolink, winlink, AVRS, APRN, etc.
+// B --> balloons, aircraft, spacecraft, etc.
+// C --> APRStt, DTMF, RFID, devices, one-way trackers*, etc.
+// D --> Weather stations
+// E --> Truckers or generally full time drivers
+// F --> generic additional station, digi, mobile, wx, etc.
 
 #define APRS_COMMENT " Hello from the sky!"
 #define RTTY_TO_APRS_RATIO 5 //transmit APRS packet with each x RTTY packet
