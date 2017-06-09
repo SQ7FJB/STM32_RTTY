@@ -203,7 +203,7 @@ void send_rtty_packet() {
         flaga |= 0x80;
       } else {
         flaga &= ~0x80;
-      }
+  }
   uint8_t lat_d = (uint8_t) abs(gpsData.lat_raw / 10000000);
   uint32_t lat_fl = (uint32_t) abs(abs(gpsData.lat_raw) - lat_d * 10000000) / 100;
   uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);

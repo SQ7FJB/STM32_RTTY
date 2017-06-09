@@ -3,27 +3,24 @@ include(CMakeForceCompiler)
 SET(CMAKE_SYSTEM_NAME "Generic")
 SET(CMAKE_SYSTEM_VERSION 1)
 
+
 if(UNIX)
-  set(TOOLCHAIN_DIR /opt/gcc-arm-none-eabi-5_4-2016q3/bin/)
+  set(TOOLCHAIN_DIR "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/")
   CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc GNU)
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++ GNU)
 else()
   set(TOOLCHAIN_DIR "D:/Programy/GNU Tools ARM Embedded/5.4 2016q3/bin")
-
   CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc.exe GNU)
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
 endif()
 
 project(STM32_RTTY C ASM CXX)
 
-
 add_definitions(-DSTM32F100C8)
 add_definitions(-DSTM32F10X_MD_VL)
 add_definitions(-DUSE_STDPERIPH_DRIVER)
 add_definitions(-DSUPPORT_CPLUSPLUS)
 add_definitions(-D__ASSEMBLY__)
-
-
 
 SET(LINKER_SCRIPT ${PROJECT_SOURCE_DIR}/arm-gcc-link.ld)
 SET(COMMON_FLAGS " -mcpu=cortex-m3 -mthumb -Wall -ffunction-sections -g -O3 -g -nostartfiles ")
