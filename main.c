@@ -33,7 +33,7 @@ unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
 int napiecie;
 
-volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | Smoc);
+volatile char flaga = 0;//((((tx_delay / 1000) & 0x0f) << 3) | TX_POWER);
 uint16_t CRC_rtty = 0x12ab;  //checksum
 char buf_rtty[200];
 
@@ -149,7 +149,7 @@ int main(void) {
   radio_set_tx_frequency(RTTY_FREQUENCY);
 
   // Programowanie mocy nadajnika
-  radio_rw_register(0x6D, 00 | (Smoc & 0x0007), 1);
+  radio_rw_register(0x6D, 00 | (TX_POWER & 0x0007), 1);
 
   radio_rw_register(0x71, 0x00, 1);
   radio_rw_register(0x87, 0x08, 0);
