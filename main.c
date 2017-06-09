@@ -200,7 +200,7 @@ int main(void) {
 
 void send_rtty_packet() {
   start_bits = RTTY_PRE_START_BITS;
-  int8_t temperatura = radio_read_temperature();
+  int8_t si4032_temperature = radio_read_temperature();
 
 //  voltage = srednia(ADCVal[0] * 600 / 4096);
   voltage = ADCVal[0] * 600 / 4096;
@@ -220,7 +220,7 @@ void send_rtty_packet() {
               gpsData.hours, gpsData.minutes, gpsData.seconds,
               gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
               gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
-              (gpsData.alt_raw / 1000), temperatura, voltage, gpsData.sats_raw,
+              (gpsData.alt_raw / 1000), si4032_temperature, voltage, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
   CRC_rtty = 0xffff;                 //possibly not neccessary??
@@ -232,6 +232,22 @@ void send_rtty_packet() {
 
   send_cun++;
 }
+
+uint16_t gps_CRC16_checksum(char *string) {
+  uint16_t crc = 0xffff;
+  char i;
+  while (*(string) != 0) {
+    crc = crc ^ (*(string++) << 8);
+    for (i = 0; i < 8; i++) {
+      if (crc & 0x8000)
+        crc = (uint16_t) ((crc << 1) ^ 0x1021);
+      else
+        crc <<= 1;
+    }
+  }
+  return crc;
+}
+
 
 #ifdef  DEBUG
 void assert_failed(uint8_t* file, uint32_t line)
