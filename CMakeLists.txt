@@ -5,6 +5,8 @@ SET(CMAKE_SYSTEM_VERSION 1)
 
 
 if(UNIX)
+#  set(CMAKE_C_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gcc")
+#  set(CMAKE_CXX_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-g++")
   set(TOOLCHAIN_DIR "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/")
   CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc GNU)
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++ GNU)
@@ -14,7 +16,7 @@ else()
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
 endif()
 
-project(STM32_RTTY C ASM CXX)
+project(STM32_RTTY C CXX)
 
 add_definitions(-DSTM32F100C8)
 add_definitions(-DSTM32F10X_MD_VL)
