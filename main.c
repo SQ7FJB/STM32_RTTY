@@ -142,10 +142,10 @@ int main(void) {
 
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);
-  radio_rw_register(0x02, 0xff, 0);
 
-  radio_rw_register(0x03, 0xff, 0);
-  radio_rw_register(0x04, 0xff, 0);
+//  radio_rw_register(0x02, 0xff, 0);
+//  radio_rw_register(0x03, 0xff, 0);
+//  radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
   // setting TX frequency
   radio_set_tx_frequency(RTTY_FREQUENCY);
@@ -154,11 +154,11 @@ int main(void) {
   radio_rw_register(0x6D, 00 | (TX_POWER & 0x0007), 1);
 
   radio_rw_register(0x71, 0x00, 1);
-  radio_rw_register(0x87, 0x08, 0);
-  radio_rw_register(0x02, 0xff, 0);
-  radio_rw_register(0x75, 0xff, 0);
-  radio_rw_register(0x76, 0xff, 0);
-  radio_rw_register(0x77, 0xff, 0);
+//  radio_rw_register(0x87, 0x08, 0);
+//  radio_rw_register(0x02, 0xff, 0);
+//  radio_rw_register(0x75, 0xff, 0);
+//  radio_rw_register(0x76, 0xff, 0);
+//  radio_rw_register(0x77, 0xff, 0);
   radio_rw_register(0x12, 0x20, 1);
   radio_rw_register(0x13, 0x00, 1);
   radio_rw_register(0x12, 0x00, 1);
