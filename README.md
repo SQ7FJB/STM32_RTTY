@@ -41,6 +41,6 @@ Shift 450Hz
 * ```RTTY_SPEED``` RTTY speed in bauds
 * ```RTTY_7BIT``` Use 7 bit RTTY
 * ```RTTY_USE_2_STOP_BITS``` use 2 stop bits
-* ```Smoc``` Power 0-7, where 7 means 42.95 mW@434.150 MHz measured on E4406A
+* ```TX_POWER``` Power 0-7, where 7 means 42.95 mW@434.150 MHz measured on E4406A
 * ```tx_delay``` Delay between frames in milliseconds
 * ```ALLOW_DISABLE_BY_BUTTON``` Allow disabling device using button
