@@ -10,8 +10,8 @@
 #else
 
 //**************config**********************
-#define CALLSIGN "DF8OE" // put your RTTY callsign here
-#define APRS_CALLSIGN "DF8OE" // put your APRS callsign here
+#define CALLSIGN "NOCALL" // put your RTTY callsign here
+#define APRS_CALLSIGN "NOCALL" // put your APRS callsign here, 6 characters. If your callsign is shorter add spaces
 #define APRS_SSID 'B' // put your APRS SSID here
 // 0 --> Your primary station usually fixed and message capable
 // 1 --> generic additional station, digi, mobile, wx, etc.

@@ -32,7 +32,7 @@ All configs in ```config.h```
 Shift 450Hz
 
 * ```CALLSIGN``` RTTY callsign
-* ```APRS_CALLSIGN``` APRS callsign
+* ```APRS_CALLSIGN``` APRS callsign, 6 characters. If your callsign is shorter add spaces
 * ```APRS_COMMENT``` APRS comment
 * ```APRS_SSID``` APRS SSID - '1' -> 1, 'A' -> 10 etc.
 * ```RTTY_TO_APRS_RATIO``` number of RTTY frames between each APRS frame
