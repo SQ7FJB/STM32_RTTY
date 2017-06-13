@@ -45,14 +45,14 @@
 #define RTTY_USE_2_STOP_BITS   0
 //********* power definition**************************
 #define TX_POWER  0 // PWR 0...7 0- MIN ... 7 - MAX
-// 0 --> -8dBm
-// 1 --> -5dBm
-// 2 --> -2dBm
-// 3 --> 1dBm
-// 4 --> 4dBm
-// 5 --> 7dBm
-// 6 --> 10dBm
-// 7 --> 13dBm
+// 0 --> -1dBm
+// 1 --> 2dBm
+// 2 --> 5dBm
+// 3 --> 8dBm
+// 4 --> 11dBm
+// 5 --> 14dBm
+// 6 --> 17dBm
+// 7 --> 20dBm
 //****************************************************
 // WARNING: do not use this in flying tracker!
 #define ALLOW_DISABLE_BY_BUTTON 1
