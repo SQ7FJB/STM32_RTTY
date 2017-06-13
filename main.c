@@ -152,11 +152,8 @@ int main(void) {
   // initial RTTY modulation
   radio_rw_register(0x71, 0x00, 1);
 
-  // possibly without any effect...
-//  radio_rw_register(0x12, 0x20, 1);
-
   // Temperature Value Offset
-  radio_rw_register(0x13, 0x00, 1);
+  radio_rw_register(0x13, 0xF0, 1);
 
   // Temperature Sensor Calibration
   radio_rw_register(0x12, 0x00, 1);
@@ -214,11 +211,11 @@ void send_rtty_packet() {
   uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
   uint32_t lon_fl = (uint32_t) abs(abs(gpsData.lon_raw) - lon_d * 10000000) / 100;
 
-  sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d,%d,%d,%d,%02x", callsign, send_cun,
+  sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d.%d,%d,%d,%d,%02x", callsign, send_cun,
               gpsData.hours, gpsData.minutes, gpsData.seconds,
               gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
               gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
-              (gpsData.alt_raw / 1000), si4032_temperature, voltage, gpsData.sats_raw,
+              (gpsData.alt_raw / 1000), si4032_temperature, voltage/100, voltage-voltage/100*100, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
 //  CRC_rtty = 0xffff;                 //possibly not neccessary??
