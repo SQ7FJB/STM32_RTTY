@@ -48,7 +48,6 @@ volatile uint8_t disable_armed = 0;
 
 void send_rtty_packet();
 uint16_t gps_CRC16_checksum (char *string);
-// int srednia (int dana);
 
 
 /**
@@ -83,7 +82,7 @@ void TIM2_IRQHandler(void) {
               radio_disable_tx();
             }
           } else if (send_rtty_status == rttyOne) {
-            radio_rw_register(0x73, 0x02, 1);
+            radio_rw_register(0x73, RTTY_DEVIATION, 1);
             GPIO_SetBits(GPIOB, RED);
           } else if (send_rtty_status == rttyZero) {
             radio_rw_register(0x73, 0x00, 1);
@@ -143,25 +142,26 @@ int main(void) {
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);
 
-//  radio_rw_register(0x02, 0xff, 0);
-//  radio_rw_register(0x03, 0xff, 0);
-//  radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
-  // setting TX frequency
+  // setting RTTY TX frequency
   radio_set_tx_frequency(RTTY_FREQUENCY);
 
   // setting TX power
   radio_rw_register(0x6D, 00 | (TX_POWER & 0x0007), 1);
 
+  // initial RTTY modulation
   radio_rw_register(0x71, 0x00, 1);
-//  radio_rw_register(0x87, 0x08, 0);
-//  radio_rw_register(0x02, 0xff, 0);
-//  radio_rw_register(0x75, 0xff, 0);
-//  radio_rw_register(0x76, 0xff, 0);
-//  radio_rw_register(0x77, 0xff, 0);
-  radio_rw_register(0x12, 0x20, 1);
+
+  // possibly without any effect...
+//  radio_rw_register(0x12, 0x20, 1);
+
+  // Temperature Value Offset
   radio_rw_register(0x13, 0x00, 1);
+
+  // Temperature Sensor Calibration
   radio_rw_register(0x12, 0x00, 1);
+
+  // ADC configuration
   radio_rw_register(0x0f, 0x80, 1);
   rtty_buf = buf_rtty;
   tx_on = 0;
@@ -184,7 +184,6 @@ int main(void) {
         ublox_get_last_data(&gpsData);
         USART_Cmd(USART1, DISABLE);
         int8_t temperature = radio_read_temperature();
-//        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
         uint16_t voltage = (uint16_t) ADCVal[0] * 600 / 4096;
         aprs_send_position(gpsData, temperature, voltage);
         USART_Cmd(USART1, ENABLE);
@@ -202,7 +201,6 @@ void send_rtty_packet() {
   start_bits = RTTY_PRE_START_BITS;
   int8_t si4032_temperature = radio_read_temperature();
 
-//  voltage = srednia(ADCVal[0] * 600 / 4096);
   voltage = ADCVal[0] * 600 / 4096;
   GPSEntry gpsData;
   ublox_get_last_data(&gpsData);
@@ -223,7 +221,7 @@ void send_rtty_packet() {
               (gpsData.alt_raw / 1000), si4032_temperature, voltage, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
-  CRC_rtty = 0xffff;                 //possibly not neccessary??
+//  CRC_rtty = 0xffff;                 //possibly not neccessary??
   CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
   sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
   rtty_buf = buf_rtty;
