@@ -1,4 +1,4 @@
-# RS41-HUP (Ham Use Project)
+# RS41HUP (Ham Use Project)
 Firmware for Vaisala RS41 for HAM use
 It is posible to recycle Vaisala's RS41-SGP sondes for amateur radio use without any electrical changes. You just have to build a new firmware (this one) and apply it via a cheap adaptor "ST-Linkv2". Modified sonde now transmits on defineable frequenca in 70cm band GPS and telemetry data in FSK RTTY format which is used by HAB projects and additionally it transmits APRS packets on a seperately defineable TX frequency.
 
@@ -16,7 +16,9 @@ https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-no
 
 # Linux:
 cd into main folder
+
 cmake .
+
 make
 
 # Configuration
@@ -46,9 +48,13 @@ Have a nice day ;)
  * 07.01.2017 - GPS now using proprietiary UBLOX protocol, more elastic code to set working frequency by SQ5RWU
  * 23.01.2017 - Test APRS code, small fixes in GPS code by SQ5RWU
  * 06.06.2017 - APRS code fix, some code cleanup
+ * June 2017 - starting with Linux support, making configuration more flexible by DF8OE
 
 
 #TODO
+ * We need someone who maintains CoIDE support
+ * Adding support for EmbiTZ IDE
+ * Adding support for platform independent IDE Eclipse
  * More APRS config options
  * Temperature and moisture sensor
  * Pressure sensor
