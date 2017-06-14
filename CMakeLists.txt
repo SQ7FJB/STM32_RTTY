@@ -4,17 +4,17 @@ SET(CMAKE_SYSTEM_NAME "Generic")
 SET(CMAKE_SYSTEM_VERSION 1)
 
 
-if(UNIX)
-   set(TOOLCHAIN_DIR "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/")
-#  set(CMAKE_C_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gcc")
-#  set(CMAKE_CXX_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-g++")
-  CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc GNU)
-  CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++ GNU)
-else()
-  set(TOOLCHAIN_DIR "D:/Programy/GNU Tools ARM Embedded/5.4 2016q3/bin")
-  CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc.exe GNU)
-  CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
-endif()
+if (UNIX)
+    set(TOOLCHAIN_DIR "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/")
+    #  set(CMAKE_C_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gcc")
+    #  set(CMAKE_CXX_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-g++")
+    CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc GNU)
+    CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++ GNU)
+else ()
+    set(TOOLCHAIN_DIR "D:/Programy/GNU Tools ARM Embedded/5.4 2016q3/bin")
+    CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-gcc.exe GNU)
+    CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
+endif ()
 
 project(RS41HUP C CXX)
 
@@ -33,19 +33,13 @@ SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map -ls
 file(GLOB_RECURSE USER_SOURCES "*.c")
 file(GLOB_RECURSE USER_SOURCES_CXX "*.cpp")
 file(GLOB_RECURSE USER_HEADERS "*.h")
-#file(GLOB_RECURSE HAL_SOURCES "stm_lib/src/*.c")
 
-#add_library(CMSIS
-#        cmsis_boot/system_stm32f10x.c
-#        cmsis_boot/startup/startup_stm32f10x_md_vl.c)
 include_directories(cmsis
         cmsis_boot
         stm_lib/inc
         .)
 
 add_executable(${PROJECT_NAME}.elf ${USER_SOURCES} ${USER_SOURCES_CXX} ${USER_HEADERS} ${HAL_SOURCES} ${LINKER_SCRIPT})
-
-#target_link_libraries(${PROJECT_NAME}.elf CMSIS)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map")
 set(HEX_FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.hex)
@@ -61,9 +55,9 @@ set(CMAKE_CXX_STANDARD 11)
 add_custom_target(program
         DEPENDS ${PROJECT_NAME}.elf
 
-		if(UNIX)
-		  #TODO
-		else()
-      	  COMMAND D:/Programy/stlink-1.3.0-win64/bin/st-flash  --reset write ${BIN_FILE} 0x08000000
-		endif()
+        if (UNIX)
+            #TODO
+        else ()
+            COMMAND D:/Programy/stlink-1.3.0-win64/bin/st-flash --reset write ${BIN_FILE} 0x08000000
+        endif ()
         COMMENT "flashing ${BIN_FILE}")
