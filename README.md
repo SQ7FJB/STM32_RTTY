@@ -1,7 +1,11 @@
-# STM32_RTTY
-STM32 &amp; SI4032 rtty test
+# RS41-HUP (Ham Use Project)
+Firmware for Vaisala RS41 for HAM use
+It is posible to recycle Vaisala's RS41-SGP sondes for amateur radio use without any electrical changes. You just have to build a new firmware (this one) and apply it via a cheap adaptor "ST-Linkv2". Modified sonde now transmits on defineable frequenca in 70cm band GPS and telemetry data in FSK RTTY format which is used by HAB projects and additionally it transmits APRS packets on a seperately defineable TX frequency.
 
 Released under GPL v2
+
+
+# Windows:
 
 Use:
 https://www.wyzbee.com/download/Utilities/Software/CoIDE-1.7.8.exe
@@ -9,10 +13,31 @@ https://www.wyzbee.com/download/Utilities/Software/CoIDE-1.7.8.exe
 And:
 https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.exe
 
-Using Linux:
+
+# Linux:
 cd into main folder
 cmake .
 make
+
+# Configuration
+All configs in ```config.h```
+Shift 450Hz
+
+* ```CALLSIGN``` RTTY callsign
+* ```APRS_CALLSIGN``` APRS callsign
+* ```APRS_SSID``` APRS SSID
+* ```APRS_COMMENT``` APRS comment
+* ```RTTY_TO_APRS_RATIO``` number of RTTY frames between each APRS frame
+* ```RTTY_FREQUENCY``` RTTY frequency in MHz
+* ```APRS_FREQUENCY``` APRS frequency in MHz
+* ```RTTY_DEVIATION``` RTTY shift configurable in 270Hz steps
+* ```RTTY_SPEED``` RTTY speed in bauds
+* ```RTTY_7BIT``` Use 7 bit RTTY
+* ```RTTY_USE_2_STOP_BITS``` use 2 stop bits
+* ```TX_POWER``` Power 0-7, (7 means 42.95 mW@434.150 MHz measured on E4406A)
+* ```TX_DELAY``` Delay between frames in milliseconds
+* ```ALLOW_DISABLE_BY_BUTTON``` Allow disabling device using button
+
 
 Have a nice day ;)
 
@@ -25,22 +50,8 @@ Have a nice day ;)
 
 #TODO
  * More APRS config options
- * Temperature and moisture sensor?
-
-# Configuration
-All configs in ```config.h```
-Shift 450Hz
-
-* ```CALLSIGN``` RTTY callsign
-* ```APRS_CALLSIGN``` APRS callsign
-* ```APRS_COMMENT``` APRS comment
-* ```APRS_SSID``` APRS SSID - '1' -> 1, 'A' -> 10 etc.
-* ```RTTY_TO_APRS_RATIO``` number of RTTY frames between each APRS frame
-* ```RTTY_FREQUENCY``` RTTY frequency in MHz
-* ```APRS_FREQUENCY``` APRS frequency in MHz
-* ```RTTY_SPEED``` RTTY speed in bauds
-* ```RTTY_7BIT``` Use 7 bit RTTY
-* ```RTTY_USE_2_STOP_BITS``` use 2 stop bits
-* ```Smoc``` Power 0-7, where 7 means 42.95 mW@434.150 MHz measured on E4406A
-* ```tx_delay``` Delay between frames in milliseconds
-* ```ALLOW_DISABLE_BY_BUTTON``` Allow disabling device using button
+ * Temperature and moisture sensor
+ * Pressure sensor
+ * implementing protocol for using external devices on extension header
+ * Configuration via extension header (serial connection) without need for reflashing firmware
+ * Possibly add configuration "wireless" using RFID loop present in sonde

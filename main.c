@@ -77,7 +77,7 @@ void TIM2_IRQHandler(void) {
             GPIO_SetBits(GPIOB, RED);
             if (*(++rtty_buf) == 0) {
               tx_on = 0;
-              tx_on_delay = tx_delay / (1000/RTTY_SPEED);
+              tx_on_delay = TX_DELAY / (1000/RTTY_SPEED);
               tx_enable = 0;
               radio_disable_tx();
             }

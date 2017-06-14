@@ -2,8 +2,8 @@
 // Created by SQ5RWU on 2016-12-24.
 //
 
-#ifndef STM32_RTTY_RADIO_H
-#define STM32_RTTY_RADIO_H
+#ifndef RS41HUP_RADIO_H
+#define RS41HUP_RADIO_H
 
 #include "config.h"
 #include <stdint.h>
@@ -37,4 +37,4 @@ int8_t radio_read_temperature();
 }
 #endif
 
-#endif //STM32_RTTY_RADIO_H
+#endif //RS41HUP_RADIO_H

@@ -2,8 +2,8 @@
 // Created by SQ5RWU on 2016-12-27.
 //
 
-#ifndef STM32_RTTY_UBLOX_H
-#define STM32_RTTY_UBLOX_H
+#ifndef RS41HUP_UBLOX_H
+#define RS41HUP_UBLOX_H
 #include <stdint.h>
 
 typedef struct {
@@ -207,4 +207,4 @@ void ublox_handle_incoming_byte(uint8_t data);
 void ublox_handle_packet(uBloxPacket *pkt);
 uint8_t ublox_wait_for_ack();
 
-#endif //STM32_RTTY_UBLOX_H
+#endif //RS41HUP_UBLOX_H

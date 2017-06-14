@@ -2,8 +2,8 @@
 // Created by SQ5RWU on 2016-12-24.
 //
 
-#ifndef STM32_RTTY_CONFIG_H
-#define STM32_RTTY_CONFIG_H
+#ifndef RS41HUP_CONFIG_H
+#define RS41HUP_CONFIG_H
 
 #ifdef USE_EXTERNAL_CONFIG
 #include "config_external.h"
@@ -11,7 +11,7 @@
 
 
 //**************RTTY Data Format**********************
-$$<callsign>,<frame>,<hhmmss>,<latitude>,<longitude>,<height>,<radio chip temperature (°C)>,<battery voltage>,<used gps satellites>,<good gps datasets>,<bad gps datasets>,<gps fix>,<CRC>
+// $$<callsign>,<frame>,<hhmmss>,<latitude>,<longitude>,<height>,<radio chip temperature (°C)>,<battery voltage>,<used gps satellites>,<good gps datasets>,<bad gps datasets>,<gps fix>,<CRC>
 
 
 //**************config**********************
@@ -71,7 +71,7 @@ $$<callsign>,<frame>,<hhmmss>,<latitude>,<longitude>,<height>,<radio chip temper
 #define ALLOW_DISABLE_BY_BUTTON 1
 
 //********** Frame Delay in msec**********************
-#define tx_delay  5000
+#define TX_DELAY  5000
 #endif
 
-#endif //STM32_RTTY_CONFIG_H
+#endif //RS41HUP_CONFIG_H
