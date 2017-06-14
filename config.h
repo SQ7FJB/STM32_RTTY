@@ -9,6 +9,11 @@
 #include "config_external.h"
 #else
 
+
+//**************RTTY Data Format**********************
+$$<callsign>,<frame>,<hhmmss>,<latitude>,<longitude>,<height>,<radio chip temperature (°C)>,<battery voltage>,<used gps satellites>,<good gps datasets>,<bad gps datasets>,<gps fix>,<CRC>
+
+
 //**************config**********************
 #define CALLSIGN "DF8OE" // put your RTTY callsign here
 #define APRS_CALLSIGN "DF8OE" // put your APRS callsign here
@@ -62,6 +67,7 @@
 //****************************************************
 
 // Switch sonde ON/OFF via Button
+// If this is a flight you might prevent sonde from powered off by button
 #define ALLOW_DISABLE_BY_BUTTON 1
 
 //********** Frame Delay in msec**********************
