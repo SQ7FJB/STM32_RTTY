@@ -2,12 +2,17 @@
 // Created by SQ5RWU on 2016-12-24.
 //
 
-#ifndef STM32_RTTY_CONFIG_H
-#define STM32_RTTY_CONFIG_H
+#ifndef RS41HUP_CONFIG_H
+#define RS41HUP_CONFIG_H
 
 #ifdef USE_EXTERNAL_CONFIG
 #include "config_external.h"
 #else
+
+
+//**************RTTY Data Format**********************
+// $$<callsign>,<frame>,<hhmmss>,<latitude>,<longitude>,<height>,<radio chip temperature (°C)>,<battery voltage>,<used gps satellites>,<good gps datasets>,<bad gps datasets>,<gps fix>,<CRC>
+
 
 //**************config**********************
 #define CALLSIGN "NOCALL" // put your RTTY callsign here
@@ -33,16 +38,22 @@
 #define APRS_COMMENT " Hello from the sky!"
 #define RTTY_TO_APRS_RATIO 5 //transmit APRS packet with each x RTTY packet
 
-//*************frequency********************
+//*************TX Frequencies********************
 #define RTTY_FREQUENCY  434.500f //Mhz middle frequency
 #define APRS_FREQUENCY  432.500f //Mhz middle frequency
-//************rtty speed*********************** si4032
+
+//************RTTY Shift*********************** si4032
+#define RTTY_DEVIATION 0x2	// RTTY shift = RTTY_DEVIATION x 270Hz
+
+//************RTTY Speed*********************** si4032
 #define RTTY_SPEED  75 // RTTY baudrate
-// SHIFT is always 450Hz
+
 //************rtty bits************************ si4032
 #define RTTY_7BIT   1 // if 0 --> 5 bits
+
 //************rtty stop bits******************* si4032
 #define RTTY_USE_2_STOP_BITS   0
+
 //********* power definition**************************
 #define TX_POWER  0 // PWR 0...7 0- MIN ... 7 - MAX
 // 0 --> -1dBm
@@ -54,10 +65,13 @@
 // 6 --> 17dBm
 // 7 --> 20dBm
 //****************************************************
-// WARNING: do not use this in flying tracker!
+
+// Switch sonde ON/OFF via Button
+// If this is a flight you might prevent sonde from powered off by button
 #define ALLOW_DISABLE_BY_BUTTON 1
-//********** frame delay in msec**********************
-#define tx_delay  5000
+
+//********** Frame Delay in msec**********************
+#define TX_DELAY  5000
 #endif
 
-#endif //STM32_RTTY_CONFIG_H
+#endif //RS41HUP_CONFIG_H

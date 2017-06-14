@@ -2,8 +2,8 @@
 // Created by Admin on 2017-01-09.
 //
 
-#ifndef STM32_RTTY_APRS_H
-#define STM32_RTTY_APRS_H
+#ifndef RS41HUP_APRS_H
+#define RS41HUP_APRS_H
 
 #ifdef __cplusplus
 #include <stdint.h>
@@ -21,4 +21,4 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
-#endif //STM32_RTTY_APRS_H
+#endif //RS41HUP_APRS_H

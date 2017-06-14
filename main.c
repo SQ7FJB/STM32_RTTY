@@ -31,6 +31,7 @@ char callsign[15] = {CALLSIGN};
 unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
 int voltage;
+volatile int adc_bottom = 2000;
 
 volatile char flaga = 0;
 uint16_t CRC_rtty = 0x12ab;  //checksum
@@ -48,7 +49,6 @@ volatile uint8_t disable_armed = 0;
 
 void send_rtty_packet();
 uint16_t gps_CRC16_checksum (char *string);
-// int srednia (int dana);
 
 
 /**
@@ -67,6 +67,24 @@ void USART1_IRQHandler(void) {
 void TIM2_IRQHandler(void) {
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+      if (ALLOW_DISABLE_BY_BUTTON){
+        if (ADCVal[1] > adc_bottom * 1.1){
+          button_pressed++;
+          if (button_pressed > (5 * RTTY_SPEED)){
+            disable_armed = 1;
+            GPIO_SetBits(GPIOB, RED);
+            GPIO_SetBits(GPIOB, GREEN);
+          }
+        } else {
+          if (disable_armed){
+            GPIO_SetBits(GPIOA, GPIO_Pin_12);
+          }
+          button_pressed = 0;
+        }
+    	if (button_pressed == 0) {
+    	  adc_bottom = ADCVal[1];	// dynamical reference for power down level
+		}
+      }
 
     if (aprs_is_active()){
       aprs_timer_handler();
@@ -78,12 +96,12 @@ void TIM2_IRQHandler(void) {
             GPIO_SetBits(GPIOB, RED);
             if (*(++rtty_buf) == 0) {
               tx_on = 0;
-              tx_on_delay = tx_delay / (1000/RTTY_SPEED);
+              tx_on_delay = TX_DELAY / (1000/RTTY_SPEED);
               tx_enable = 0;
               radio_disable_tx();
             }
           } else if (send_rtty_status == rttyOne) {
-            radio_rw_register(0x73, 0x02, 1);
+            radio_rw_register(0x73, RTTY_DEVIATION, 1);
             GPIO_SetBits(GPIOB, RED);
           } else if (send_rtty_status == rttyZero) {
             radio_rw_register(0x73, 0x00, 1);
@@ -107,21 +125,6 @@ void TIM2_IRQHandler(void) {
         }
         cun = 200;
       }
-      if (ALLOW_DISABLE_BY_BUTTON){
-        if (ADCVal[1] > 1900){
-          button_pressed++;
-          if (button_pressed > (5 * RTTY_SPEED)){
-            disable_armed = 1;
-            GPIO_SetBits(GPIOB, RED);
-            GPIO_SetBits(GPIOB, GREEN);
-          }
-        } else {
-          if (disable_armed){
-            GPIO_SetBits(GPIOA, GPIO_Pin_12);
-          }
-          button_pressed = 0;
-        }
-      }
     }
 
   }
@@ -143,25 +146,23 @@ int main(void) {
   GPIO_SetBits(GPIOB, RED);
   USART_SendData(USART3, 0xc);
 
-//  radio_rw_register(0x02, 0xff, 0);
-//  radio_rw_register(0x03, 0xff, 0);
-//  radio_rw_register(0x04, 0xff, 0);
   radio_soft_reset();
-  // setting TX frequency
+  // setting RTTY TX frequency
   radio_set_tx_frequency(RTTY_FREQUENCY);
 
   // setting TX power
   radio_rw_register(0x6D, 00 | (TX_POWER & 0x0007), 1);
 
+  // initial RTTY modulation
   radio_rw_register(0x71, 0x00, 1);
-//  radio_rw_register(0x87, 0x08, 0);
-//  radio_rw_register(0x02, 0xff, 0);
-//  radio_rw_register(0x75, 0xff, 0);
-//  radio_rw_register(0x76, 0xff, 0);
-//  radio_rw_register(0x77, 0xff, 0);
-  radio_rw_register(0x12, 0x20, 1);
-  radio_rw_register(0x13, 0x00, 1);
+
+  // Temperature Value Offset
+  radio_rw_register(0x13, 0xF0, 1);
+
+  // Temperature Sensor Calibration
   radio_rw_register(0x12, 0x00, 1);
+
+  // ADC configuration
   radio_rw_register(0x0f, 0x80, 1);
   rtty_buf = buf_rtty;
   tx_on = 0;
@@ -171,6 +172,7 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
+
 
   while (1) {
     if (tx_on == 0 && tx_enable) {
@@ -184,7 +186,6 @@ int main(void) {
         ublox_get_last_data(&gpsData);
         USART_Cmd(USART1, DISABLE);
         int8_t temperature = radio_read_temperature();
-//        uint16_t voltage = (uint16_t) srednia(ADCVal[0] * 600 / 4096);
         uint16_t voltage = (uint16_t) ADCVal[0] * 600 / 4096;
         aprs_send_position(gpsData, temperature, voltage);
         USART_Cmd(USART1, ENABLE);
@@ -202,7 +203,6 @@ void send_rtty_packet() {
   start_bits = RTTY_PRE_START_BITS;
   int8_t si4032_temperature = radio_read_temperature();
 
-//  voltage = srednia(ADCVal[0] * 600 / 4096);
   voltage = ADCVal[0] * 600 / 4096;
   GPSEntry gpsData;
   ublox_get_last_data(&gpsData);
@@ -216,14 +216,14 @@ void send_rtty_packet() {
   uint8_t lon_d = (uint8_t) abs(gpsData.lon_raw / 10000000);
   uint32_t lon_fl = (uint32_t) abs(abs(gpsData.lon_raw) - lon_d * 10000000) / 100;
 
-  sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d,%d,%d,%d,%02x", callsign, send_cun,
+  sprintf(buf_rtty, "$$$$%s,%d,%02u%02u%02u,%s%d.%05ld,%s%d.%05ld,%ld,%d,%d.%d,%d,%d,%d,%02x", callsign, send_cun,
               gpsData.hours, gpsData.minutes, gpsData.seconds,
               gpsData.lat_raw < 0 ? "-" : "", lat_d, lat_fl,
               gpsData.lon_raw < 0 ? "-" : "", lon_d, lon_fl,
-              (gpsData.alt_raw / 1000), si4032_temperature, voltage, gpsData.sats_raw,
+              (gpsData.alt_raw / 1000), si4032_temperature, voltage/100, voltage-voltage/100*100, gpsData.sats_raw,
               gpsData.ok_packets, gpsData.bad_packets,
               flaga);
-  CRC_rtty = 0xffff;                 //possibly not neccessary??
+//  CRC_rtty = 0xffff;                 //possibly not neccessary??
   CRC_rtty = gps_CRC16_checksum(buf_rtty + 4);
   sprintf(buf_rtty, "%s*%04X\n", buf_rtty, CRC_rtty & 0xffff);
   rtty_buf = buf_rtty;

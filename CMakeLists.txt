@@ -16,7 +16,7 @@ else()
   CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_DIR}/arm-none-eabi-g++.exe GNU)
 endif()
 
-project(STM32_RTTY C CXX)
+project(RS41HUP C CXX)
 
 add_definitions(-DSTM32F100C8)
 add_definitions(-DSTM32F10X_MD_VL)
@@ -60,5 +60,10 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_custom_target(program
         DEPENDS ${PROJECT_NAME}.elf
-        COMMAND D:/Programy/stlink-1.3.0-win64/bin/st-flash  --reset write ${BIN_FILE} 0x08000000
+
+		if(UNIX)
+		  #TODO
+		else()
+      	  COMMAND D:/Programy/stlink-1.3.0-win64/bin/st-flash  --reset write ${BIN_FILE} 0x08000000
+		endif()
         COMMENT "flashing ${BIN_FILE}")
