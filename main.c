@@ -31,6 +31,7 @@ char callsign[15] = {CALLSIGN};
 unsigned int send_cun;        //frame counter
 char status[2] = {'N'};
 int voltage;
+volatile int adc_bottom = 2000;
 
 volatile char flaga = 0;
 uint16_t CRC_rtty = 0x12ab;  //checksum
@@ -66,6 +67,24 @@ void USART1_IRQHandler(void) {
 void TIM2_IRQHandler(void) {
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+      if (ALLOW_DISABLE_BY_BUTTON){
+        if (ADCVal[1] > adc_bottom * 1.1){
+          button_pressed++;
+          if (button_pressed > (5 * RTTY_SPEED)){
+            disable_armed = 1;
+            GPIO_SetBits(GPIOB, RED);
+            GPIO_SetBits(GPIOB, GREEN);
+          }
+        } else {
+          if (disable_armed){
+            GPIO_SetBits(GPIOA, GPIO_Pin_12);
+          }
+          button_pressed = 0;
+        }
+    	if (button_pressed == 0) {
+    	  adc_bottom = ADCVal[1];	// dynamical reference for power down level
+		}
+      }
 
     if (aprs_is_active()){
       aprs_timer_handler();
@@ -105,21 +124,6 @@ void TIM2_IRQHandler(void) {
           pun = 1;
         }
         cun = 200;
-      }
-      if (ALLOW_DISABLE_BY_BUTTON){
-        if (ADCVal[1] > 1900){
-          button_pressed++;
-          if (button_pressed > (5 * RTTY_SPEED)){
-            disable_armed = 1;
-            GPIO_SetBits(GPIOB, RED);
-            GPIO_SetBits(GPIOB, GREEN);
-          }
-        } else {
-          if (disable_armed){
-            GPIO_SetBits(GPIOA, GPIO_Pin_12);
-          }
-          button_pressed = 0;
-        }
       }
     }
 
@@ -168,6 +172,7 @@ int main(void) {
   radio_enable_tx();
 
   uint8_t rtty_before_aprs_left = RTTY_TO_APRS_RATIO;
+
 
   while (1) {
     if (tx_on == 0 && tx_enable) {
