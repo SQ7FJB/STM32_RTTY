@@ -70,4 +70,13 @@ pin2 and pin13 of flatconnector, the following telemetry is transmitted:
 2.2K --> 319°
 
 
+Pressure sensor module:
+-----------------------
+
+This module is connected to SPI2 of STM. It uses SPI_NSS and only data output
+from module - SPI output from STM is not connected to module. So I think it is
+a kind of polling.
+
+
+
 2 be continued
