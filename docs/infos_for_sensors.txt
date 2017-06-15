@@ -13,16 +13,16 @@ Pinout of sensor boom:
 1 - GND
 2 - temperature sensor (1)
 3 - GND
-4 -
+4 - humidity sensor1 (1)
 5 - GND
-6 -
+6 - humidity sensor1 (2)
 7 - GND
-8 -
-9 -
+8 - heater humidity sensor
+9 - heater humidity sensor
 10 - GND
-11 -
+11 - humidity sensor2 (1)
 12 - GND
-13 - temperature sensor (2)
+13 - temperature sensor (2) and humidity sensor2 (2)
 14 - GND
 15 - GND
 16 - GND
