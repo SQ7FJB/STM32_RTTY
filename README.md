@@ -1,6 +1,6 @@
 # RS41HUP (Ham Use Project)
-Firmware for Vaisala RS41 for HAM use
-It is posible to recycle Vaisala's RS41-SGP sondes for amateur radio use without any electrical changes. You just have to build a new firmware (this one) and apply it via a cheap adaptor "ST-Linkv2". Modified sonde now transmits on defineable frequenca in 70cm band GPS and telemetry data in FSK RTTY format which is used by HAB projects and additionally it transmits APRS packets on a seperately defineable TX frequency.
+Firmware for RS41 for HAM use
+It is posible to recycle RS41-SGP sondes for amateur radio use without any electrical changes. You just have to build a new firmware (this one) and apply it via a cheap adaptor "ST-Linkv2". Modified sonde now transmits on defineable frequenca in 70cm band GPS and telemetry data in FSK RTTY format which is used by HAB projects and additionally it transmits APRS packets on a seperately defineable TX frequency.
 
 Released under GPL v2
 
