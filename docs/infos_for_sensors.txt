@@ -59,7 +59,7 @@ small round copper isles (numbers correspond to sensor boom, G == GND, ? == unkn
 
 Investigations about temperature sensor:
 ----------------------------------------
-Temperatrue sensor is resistance-based. If you insert a resistor between
+Temperature sensor is resistance-based. If you insert a resistor between
 pin2 and pin13 of flatconnector, the following telemetry is transmitted:
 
 330R --> -168°

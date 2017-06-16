@@ -23,7 +23,6 @@ make
 
 # Configuration
 All configs in ```config.h```
-Shift 450Hz
 
 * ```CALLSIGN``` RTTY callsign
 * ```APRS_CALLSIGN``` APRS callsign, 6 characters. If your callsign is shorter add spaces
