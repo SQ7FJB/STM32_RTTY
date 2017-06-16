@@ -74,7 +74,7 @@ void TIM2_IRQHandler(void) {
       if (ALLOW_DISABLE_BY_BUTTON){
         if (ADCVal[1] > adc_bottom){
           button_pressed++;
-          if (button_pressed > (5 * RTTY_SPEED)){
+          if (button_pressed > (RTTY_SPEED / 3)){
             disable_armed = 1;
             GPIO_SetBits(GPIOB, RED);
             GPIO_SetBits(GPIOB, GREEN);
