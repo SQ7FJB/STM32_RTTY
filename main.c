@@ -67,10 +67,14 @@ void USART1_IRQHandler(void) {
 void TIM2_IRQHandler(void) {
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+
+    if (aprs_is_active()){
+      aprs_timer_handler();
+    } else {
       if (ALLOW_DISABLE_BY_BUTTON){
-        if (ADCVal[1] > adc_bottom * 1.1){
+        if (ADCVal[1] > adc_bottom){
           button_pressed++;
-          if (button_pressed > (5 * RTTY_SPEED)){
+          if (button_pressed > (RTTY_SPEED / 3)){
             disable_armed = 1;
             GPIO_SetBits(GPIOB, RED);
             GPIO_SetBits(GPIOB, GREEN);
@@ -82,13 +86,9 @@ void TIM2_IRQHandler(void) {
           button_pressed = 0;
         }
     	if (button_pressed == 0) {
-    	  adc_bottom = ADCVal[1];	// dynamical reference for power down level
+    	  adc_bottom = ADCVal[1] * 1.1;	// dynamical reference for power down level
 		}
       }
-
-    if (aprs_is_active()){
-      aprs_timer_handler();
-    } else {
       if (tx_on) {
         send_rtty_status = send_rtty((char *) rtty_buf);
         if (!disable_armed){
